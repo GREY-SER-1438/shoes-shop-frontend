@@ -4,11 +4,13 @@ import type { Product } from "@/data/catalog";
 
 type ProductCardProps = {
   product: Product;
-  onAddToCart: (productId: number, color: string) => void;
+  onAddToCart: (productId: number, color: string, size: string) => void;
 };
 
 export default function ProductCard({ product, onAddToCart }: ProductCardProps) {
+  const sizes = ["39", "40", "41", "42", "43", "44"];
   const [selectedColor, setSelectedColor] = useState(product.colors[0] ?? "");
+  const [selectedSize, setSelectedSize] = useState("42");
 
   return (
     <article className="group overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-black/5 transition hover:-translate-y-1 hover:shadow-lg">
@@ -60,6 +62,23 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
           ))}
         </div>
 
+        <div className="flex flex-wrap gap-2">
+          {sizes.map((size) => (
+            <button
+              key={`${product.id}-size-${size}`}
+              type="button"
+              onClick={() => setSelectedSize(size)}
+              className={`rounded-lg border px-2.5 py-1 text-xs font-semibold transition ${
+                selectedSize === size
+                  ? "border-black bg-black text-white"
+                  : "border-zinc-300 bg-white text-zinc-700 hover:border-zinc-400"
+              }`}
+            >
+              EU {size}
+            </button>
+          ))}
+        </div>
+
         <div className="flex items-center gap-2">
           {product.oldPrice && (
             <span className="text-sm text-zinc-400 line-through">
@@ -72,7 +91,7 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
         </div>
 
         <button
-          onClick={() => onAddToCart(product.id, selectedColor)}
+          onClick={() => onAddToCart(product.id, selectedColor, selectedSize)}
           className="inline-flex w-full items-center justify-center rounded-xl bg-black px-4 py-3 text-sm font-semibold text-white transition hover:bg-pink-600"
         >
           В корзину
