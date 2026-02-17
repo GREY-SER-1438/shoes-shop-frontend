@@ -8,7 +8,7 @@ import Testimonials from "@/components/sections/Testimonials";
 
 type HomeProps = {
   cartCount: number;
-  onAddToCart: (productId: number) => void;
+  onAddToCart: (productId: number, color: string) => void;
 };
 
 export default function Home({ cartCount, onAddToCart }: HomeProps) {

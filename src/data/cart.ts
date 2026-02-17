@@ -1,6 +1,7 @@
 export type CartItem = {
   productId: number;
   size: string;
+  color: string;
   quantity: number;
 };
 
@@ -12,13 +13,18 @@ export function readCart(): CartItem[] {
     if (!raw) return [];
     const parsed = JSON.parse(raw) as CartItem[];
     if (!Array.isArray(parsed)) return [];
-    return parsed.filter(
-      (item) =>
-        typeof item?.productId === "number" &&
-        typeof item?.size === "string" &&
-        typeof item?.quantity === "number" &&
-        item.quantity > 0,
-    );
+    return parsed
+      .filter(
+        (item) =>
+          typeof item?.productId === "number" &&
+          typeof item?.size === "string" &&
+          typeof item?.quantity === "number" &&
+          item.quantity > 0,
+      )
+      .map((item) => ({
+        ...item,
+        color: typeof item.color === "string" ? item.color : "",
+      }));
   } catch {
     return [];
   }

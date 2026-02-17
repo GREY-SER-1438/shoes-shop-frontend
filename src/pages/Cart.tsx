@@ -8,8 +8,11 @@ import { products } from "@/data/catalog";
 type CartProps = {
   cartItems: CartItem[];
   cartCount: number;
-  onChangeQuantity: (productId: number, delta: number) => void;
-  onRemoveItem: (productId: number) => void;
+  onChangeQuantity: (
+    item: Pick<CartItem, "productId" | "size" | "color">,
+    delta: number,
+  ) => void;
+  onRemoveItem: (item: Pick<CartItem, "productId" | "size" | "color">) => void;
 };
 
 export default function Cart({
@@ -78,7 +81,7 @@ export default function Cart({
             ) : (
               detailedItems.map((item) => (
                 <article
-                  key={item.productId}
+                  key={`${item.productId}-${item.size}-${item.color}`}
                   className="grid gap-4 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5 sm:grid-cols-[120px_1fr]"
                 >
                   <div className="h-28 overflow-hidden rounded-xl bg-zinc-100 sm:h-32">
@@ -101,9 +104,25 @@ export default function Cart({
                         <p className="mt-1 text-sm text-zinc-600">
                           Размер EU: {item.size}
                         </p>
+                        <p className="mt-1 inline-flex items-center gap-2 text-sm text-zinc-600">
+                          Цвет:
+                          <span
+                            className="h-4 w-4 rounded-full border border-black/10"
+                            style={{
+                              backgroundColor:
+                                item.color || item.product.colors[0] || "#000000",
+                            }}
+                          />
+                        </p>
                       </div>
                       <button
-                        onClick={() => onRemoveItem(item.productId)}
+                        onClick={() =>
+                          onRemoveItem({
+                            productId: item.productId,
+                            size: item.size,
+                            color: item.color,
+                          })
+                        }
                         className="rounded-lg p-2 text-zinc-500 transition hover:bg-zinc-100 hover:text-red-500"
                         aria-label={`Удалить ${item.product.name}`}
                       >
@@ -116,7 +135,16 @@ export default function Cart({
                         <button
                           className="p-2.5 text-zinc-700 transition hover:bg-zinc-100"
                           aria-label="Уменьшить количество"
-                          onClick={() => onChangeQuantity(item.productId, -1)}
+                          onClick={() =>
+                            onChangeQuantity(
+                              {
+                                productId: item.productId,
+                                size: item.size,
+                                color: item.color,
+                              },
+                              -1,
+                            )
+                          }
                         >
                           <Minus size={16} />
                         </button>
@@ -126,7 +154,16 @@ export default function Cart({
                         <button
                           className="p-2.5 text-zinc-700 transition hover:bg-zinc-100"
                           aria-label="Увеличить количество"
-                          onClick={() => onChangeQuantity(item.productId, 1)}
+                          onClick={() =>
+                            onChangeQuantity(
+                              {
+                                productId: item.productId,
+                                size: item.size,
+                                color: item.color,
+                              },
+                              1,
+                            )
+                          }
                         >
                           <Plus size={16} />
                         </button>

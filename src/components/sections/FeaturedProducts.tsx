@@ -4,7 +4,7 @@ import { products } from "@/data/catalog";
 import ProductCard from "@/components/sections/ProductCard";
 
 type FeaturedProductsProps = {
-  onAddToCart: (productId: number) => void;
+  onAddToCart: (productId: number, color: string) => void;
 };
 
 export default function FeaturedProducts({ onAddToCart }: FeaturedProductsProps) {

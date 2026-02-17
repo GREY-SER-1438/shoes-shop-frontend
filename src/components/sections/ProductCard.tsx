@@ -1,12 +1,15 @@
 import { Star } from "lucide-react";
+import { useState } from "react";
 import type { Product } from "@/data/catalog";
 
 type ProductCardProps = {
   product: Product;
-  onAddToCart: (productId: number) => void;
+  onAddToCart: (productId: number, color: string) => void;
 };
 
 export default function ProductCard({ product, onAddToCart }: ProductCardProps) {
+  const [selectedColor, setSelectedColor] = useState(product.colors[0] ?? "");
+
   return (
     <article className="group overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-black/5 transition hover:-translate-y-1 hover:shadow-lg">
       <div className="relative h-64 overflow-hidden">
@@ -42,9 +45,16 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
 
         <div className="flex gap-2">
           {product.colors.map((color) => (
-            <span
+            <button
               key={`${product.id}-${color}`}
-              className="h-5 w-5 rounded-full border border-black/10"
+              type="button"
+              aria-label={`Выбрать цвет ${color}`}
+              onClick={() => setSelectedColor(color)}
+              className={`h-5 w-5 rounded-full border transition ${
+                selectedColor === color
+                  ? "scale-110 border-black ring-2 ring-zinc-900/20"
+                  : "border-black/10"
+              }`}
               style={{ backgroundColor: color }}
             />
           ))}
@@ -62,7 +72,7 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
         </div>
 
         <button
-          onClick={() => onAddToCart(product.id)}
+          onClick={() => onAddToCart(product.id, selectedColor)}
           className="inline-flex w-full items-center justify-center rounded-xl bg-black px-4 py-3 text-sm font-semibold text-white transition hover:bg-pink-600"
         >
           В корзину

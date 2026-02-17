@@ -18,35 +18,51 @@ export default function App() {
     writeCart(cartItems);
   }, [cartItems]);
 
-  const addToCart = (productId: number, size = "42") => {
+  const isSameCartLine = (
+    item: CartItem,
+    target: Pick<CartItem, "productId" | "size" | "color">,
+  ) =>
+    item.productId === target.productId &&
+    item.size === target.size &&
+    item.color === target.color;
+
+  const addToCart = (productId: number, color: string, size = "42") => {
     setCartItems((current) => {
       const existing = current.find(
-        (item) => item.productId === productId && item.size === size,
+        (item) =>
+          isSameCartLine(item, {
+            productId,
+            size,
+            color,
+          }),
       );
       if (!existing) {
-        return [...current, { productId, size, quantity: 1 }];
+        return [...current, { productId, size, color, quantity: 1 }];
       }
       return current.map((item) =>
-        item.productId === productId && item.size === size
+        isSameCartLine(item, { productId, size, color })
           ? { ...item, quantity: item.quantity + 1 }
           : item,
       );
     });
   };
 
-  const changeQuantity = (productId: number, delta: number) => {
+  const changeQuantity = (
+    target: Pick<CartItem, "productId" | "size" | "color">,
+    delta: number,
+  ) => {
     setCartItems((current) =>
       current.map((item) =>
-        item.productId === productId
+        isSameCartLine(item, target)
           ? { ...item, quantity: Math.max(1, item.quantity + delta) }
           : item,
       ),
     );
   };
 
-  const removeItem = (productId: number) => {
+  const removeItem = (target: Pick<CartItem, "productId" | "size" | "color">) => {
     setCartItems((current) =>
-      current.filter((item) => item.productId !== productId),
+      current.filter((item) => !isSameCartLine(item, target)),
     );
   };
 
