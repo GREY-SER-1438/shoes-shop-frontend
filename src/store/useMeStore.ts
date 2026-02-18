@@ -1,5 +1,7 @@
 import { create } from "zustand";
 import { instance } from "@/api/instance";
+import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/get-error-message";
 
 export interface Me {
   email: string;
@@ -25,10 +27,11 @@ export const useMeStore = create<meStore>((set, get) => ({
       const response = await instance.get<Me>("/user/me");
       set({ loading: false, me: response.data });
     } catch (e) {
-      console.error(e);
+      const errorMessage = getErrorMessage(e);
+      toast.error(errorMessage);
       set({
         loading: false,
-        error: e instanceof Error ? e.message : "An unknown error occurred",
+        error: errorMessage,
       });
     }
   },

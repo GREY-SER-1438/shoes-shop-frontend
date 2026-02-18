@@ -3,6 +3,7 @@ import Footer from "@/components/sections/Footer";
 import Header from "@/components/sections/Header";
 import { useMeStore } from "@/store/useMeStore";
 import Cookies from "js-cookie";
+import { useCartStore } from "@/store/useCartStore";
 
 type MainLayoutProps = {
   children: ReactNode;
@@ -14,9 +15,11 @@ export default function MainLayout({
   cartCount = 0,
 }: MainLayoutProps) {
   const { getMe } = useMeStore();
+  const { getCart } = useCartStore();
   useEffect(() => {
     if (Cookies.get("token") || Cookies.get("access_token")) {
       getMe();
+      getCart();
     }
   }, []);
   return (

@@ -6,6 +6,7 @@ import {
   Send,
   SendHorizontal,
 } from "lucide-react";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const socialLinks = [
   {
@@ -22,9 +23,12 @@ const socialLinks = [
 ];
 
 export default function Footer() {
+  const { pathname } = useLocation();
+  const navigate = useNavigate();
+
   const scrollTo = (id: string) => {
-    if (window.location.pathname !== "/") {
-      window.location.assign(`/#${id}`);
+    if (pathname !== "/") {
+      navigate(`/#${id}`);
       return;
     }
     const section = document.getElementById(id);
@@ -80,17 +84,14 @@ export default function Footer() {
                 { id: "contact", label: "Контакты" },
               ].map(({ id, label }) => (
                 <li key={id}>
-                  <a
-                    href={`#${id}`}
-                    onClick={(event) => {
-                      event.preventDefault();
-                      scrollTo(id);
-                    }}
+                  <button
+                    type="button"
+                    onClick={() => scrollTo(id)}
                     className="group inline-flex items-center gap-2 transition hover:text-[var(--background)]"
                   >
                     <span className="h-1.5 w-1.5 rounded-full bg-[var(--primary)]" />
                     {label}
-                  </a>
+                  </button>
                 </li>
               ))}
             </ul>

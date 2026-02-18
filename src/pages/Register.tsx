@@ -3,7 +3,7 @@ import type { FormEvent } from "react";
 import { useState } from "react";
 import { z } from "zod";
 import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const registerSchema = z
   .object({
@@ -152,12 +152,12 @@ export default function Register() {
 
         <p className="mt-4 text-sm text-[var(--muted-foreground)]">
           Уже есть аккаунт?
-          <a
+          <Link
             className="font-semibold text-[var(--card-foreground)] underline"
-            href="/login"
+            to="/login"
           >
             Войти
-          </a>
+          </Link>
         </p>
       </section>
     </main>

@@ -1,80 +1,53 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Cart from "@/pages/Cart";
-import type { CartItem } from "@/data/cart";
-import { readCart, writeCart } from "@/data/cart";
 import Home from "@/pages/Home";
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
+import AdminLogin from "@/pages/AdminLogin";
+import AdminPanel from "@/pages/AdminPanel";
 import MainLayout from "@/components/layouts/MainLayout";
 import { Toaster } from "./components/ui/sonner";
 import Cookies from "js-cookie";
+import { useCartStore } from "@/store/useCartStore";
+import { useProductsStore } from "@/store/useProductsStore";
+import { toast } from "sonner";
 
 export default function App() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  const [cartItems, setCartItems] = useState<CartItem[]>(() => readCart());
-
-  useEffect(() => {
-    writeCart(cartItems);
-  }, [cartItems]);
-
-  const isSameCartLine = (
-    item: CartItem,
-    target: Pick<CartItem, "productId" | "size" | "color">,
-  ) =>
-    item.productId === target.productId &&
-    item.size === target.size &&
-    item.color === target.color;
+  const { cart, getCart, addCartItem } = useCartStore();
+  const products = useProductsStore((state) => state.products);
 
   const addToCart = (productId: number, color: string, size = "42") => {
+    void color;
+    void size;
+
     if (!isAuthenticated) {
       navigate("/login");
       return;
     }
 
-    setCartItems((current) => {
-      const existingItem = current.find((item) =>
-        isSameCartLine(item, { productId, color, size }),
-      );
+    const product = products.find((item) => item.groupId === productId);
+    const currentQuantity =
+      cart?.items
+        .filter((item) => item.productId === productId)
+        .reduce((sum, item) => sum + item.quantity, 0) ?? 0;
 
-      if (!existingItem) {
-        return [...current, { productId, color, size, quantity: 1 }];
-      }
+    if (product && currentQuantity >= product.stock) {
+      toast.error("Достигнут лимит остатка на складе");
+      return;
+    }
 
-      return current.map((item) =>
-        isSameCartLine(item, { productId, color, size })
-          ? { ...item, quantity: item.quantity + 1 }
-          : item,
-      );
-    });
+    void addCartItem(productId, 1);
   };
 
-  const changeQuantity = (
-    target: Pick<CartItem, "productId" | "size" | "color">,
-    delta: number,
-  ) => {
-    setCartItems((current) =>
-      current.map((item) =>
-        isSameCartLine(item, target)
-          ? { ...item, quantity: Math.max(1, item.quantity + delta) }
-          : item,
-      ),
-    );
-  };
-
-  const removeItem = (
-    target: Pick<CartItem, "productId" | "size" | "color">,
-  ) => {
-    setCartItems((current) =>
-      current.filter((item) => !isSameCartLine(item, target)),
-    );
-  };
-
-  const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+  const cartCount = cart?.totalItems ?? 0;
   const isCartPage = pathname === "/cart";
   const isLoginPage = pathname === "/login";
   const isRegisterPage = pathname === "/register";
+  const isAdminLoginPage = pathname === "/admin/login";
+  const isAdminPanelPage = pathname === "/admin/panel";
   const isAuthenticated = Boolean(
     Cookies.get("token") || Cookies.get("access_token"),
   );
@@ -92,6 +65,11 @@ export default function App() {
     }
   }, [navigate, redirectToHome, redirectToLogin]);
 
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    void getCart();
+  }, [getCart, isAuthenticated]);
+
   if (redirectToHome || redirectToLogin) {
     return null;
   }
@@ -105,11 +83,7 @@ export default function App() {
       <Toaster position="top-center" />
       {isCartPage ? (
         <MainLayout cartCount={cartCount}>
-          <Cart
-            cartItems={cartItems}
-            onChangeQuantity={changeQuantity}
-            onRemoveItem={removeItem}
-          />
+          <Cart />
         </MainLayout>
       ) : isLoginPage ? (
         <MainLayout>
@@ -118,6 +92,14 @@ export default function App() {
       ) : isRegisterPage ? (
         <MainLayout>
           <Register />
+        </MainLayout>
+      ) : isAdminLoginPage ? (
+        <MainLayout>
+          <AdminLogin />
+        </MainLayout>
+      ) : isAdminPanelPage ? (
+        <MainLayout>
+          <AdminPanel />
         </MainLayout>
       ) : (
         <MainLayout cartCount={cartCount}>

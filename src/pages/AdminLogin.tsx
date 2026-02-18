@@ -1,40 +1,33 @@
 import { instance } from "@/api/instance";
+import { getErrorMessage } from "@/lib/get-error-message";
 import Cookies from "js-cookie";
 import type { FormEvent } from "react";
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { z } from "zod";
 
-const loginSchema = z.object({
-  email: z
-    .string()
-    .trim()
-    .min(1, "Введите email")
-    .email("Введите корректный email"),
-  password: z
-    .string()
-    .min(1, "Введите пароль")
-    .min(6, "Пароль должен быть не короче 6 символов"),
+const adminLoginSchema = z.object({
+  email: z.string().trim().min(1, "Введите email").email("Некорректный email"),
+  password: z.string().min(1, "Введите пароль"),
 });
 
-type LoginFormData = z.infer<typeof loginSchema>;
-type LoginErrors = Partial<Record<keyof LoginFormData, string>>;
+type AdminLoginFormData = z.infer<typeof adminLoginSchema>;
+type AdminLoginErrors = Partial<Record<keyof AdminLoginFormData, string>>;
 
-const initialForm: LoginFormData = {
+const initialForm: AdminLoginFormData = {
   email: "",
   password: "",
 };
 
-export default function Login() {
-  const [formData, setFormData] = useState<LoginFormData>(initialForm);
-  const [errors, setErrors] = useState<LoginErrors>({});
+export default function AdminLogin() {
+  const [formData, setFormData] = useState<AdminLoginFormData>(initialForm);
+  const [errors, setErrors] = useState<AdminLoginErrors>({});
   const [status, setStatus] = useState("");
-  const navigate = useNavigate();
 
-  const setField = <K extends keyof LoginFormData>(
+  const setField = <K extends keyof AdminLoginFormData>(
     key: K,
-    value: LoginFormData[K],
+    value: AdminLoginFormData[K],
   ) => {
     setFormData((prev) => ({ ...prev, [key]: value }));
     setErrors((prev) => ({ ...prev, [key]: undefined }));
@@ -44,7 +37,7 @@ export default function Login() {
   const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const result = loginSchema.safeParse(formData);
+    const result = adminLoginSchema.safeParse(formData);
     if (!result.success) {
       const fieldErrors = result.error.flatten().fieldErrors;
       setErrors({
@@ -56,7 +49,6 @@ export default function Login() {
     }
 
     setErrors({});
-
     try {
       setStatus("Выполняется вход...");
       const response = await instance.post("auth/login", {
@@ -74,21 +66,23 @@ export default function Login() {
       Cookies.set("token", token, { sameSite: "lax" });
       setStatus("Вход выполнен успешно");
       toast.success("Вы успешно вошли в аккаунт");
-      navigate("/");
+      navigate("/admin/panel");
     } catch (error) {
+      const errorMessage = getErrorMessage(error);
       setStatus("Ошибка входа");
-      toast.error(`${error}`);
+      toast.error(errorMessage);
     }
   };
+  const navigate = useNavigate();
 
   return (
     <main className="mx-auto flex w-full max-w-7xl flex-1 items-center px-4 py-28 sm:px-6 lg:px-8">
       <section className="mx-auto w-full max-w-md rounded-xl bg-[var(--card)] p-6 shadow-xl ring-1 ring-[var(--border)] sm:p-8">
         <h1 className="text-3xl font-black tracking-tight text-[var(--card-foreground)]">
-          Авторизация
+          Вход в админ-панель
         </h1>
         <p className="mt-2 text-sm text-[var(--muted-foreground)]">
-          Введите email и пароль, чтобы войти в аккаунт.
+          Доступ только для администраторов.
         </p>
 
         <form className="mt-6 space-y-4" onSubmit={onSubmit} noValidate>
@@ -132,19 +126,9 @@ export default function Login() {
             type="submit"
             className="inline-flex w-full items-center justify-center rounded-xl bg-[var(--primary)] px-4 py-3 text-sm font-semibold text-[var(--primary-foreground)] transition hover:opacity-90"
           >
-            Войти
+            Войти в админ-панель
           </button>
         </form>
-
-        <p className="mt-4 text-sm text-[var(--muted-foreground)]">
-          Нет аккаунта?{" "}
-          <Link
-            className="font-semibold text-[var(--card-foreground)] underline"
-            to="/register"
-          >
-            Регистрация
-          </Link>
-        </p>
       </section>
     </main>
   );

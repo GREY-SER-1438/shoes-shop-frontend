@@ -1,32 +1,23 @@
 import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 import { useEffect, useMemo } from "react";
-import type { CartItem } from "@/data/cart";
-import { products } from "@/data/catalog";
+import { useNavigate } from "react-router-dom";
 import { useCartStore } from "@/store/useCartStore";
+import { useProductsStore } from "@/store/useProductsStore";
 
-type CartProps = {
-  cartItems: CartItem[];
-  onChangeQuantity: (
-    item: Pick<CartItem, "productId" | "size" | "color">,
-    delta: number,
-  ) => void;
-  onRemoveItem: (item: Pick<CartItem, "productId" | "size" | "color">) => void;
-};
+export default function Cart() {
+  const navigate = useNavigate();
+  const { products, getProducts } = useProductsStore();
+  const { cart, getCart, updateCartItem, removeCartItem } = useCartStore();
 
-export default function Cart({
-  cartItems,
-  onChangeQuantity,
-  onRemoveItem,
-}: CartProps) {
   const detailedItems = useMemo(() => {
-    return cartItems
+    return (cart?.items ?? [])
       .map((item) => {
-        const product = products.find((entry) => entry.id === item.productId);
+        const product = products.find((entry) => entry.groupId === item.productId);
         if (!product) return null;
         return { ...item, product };
       })
       .filter((item): item is NonNullable<typeof item> => item !== null);
-  }, [cartItems]);
+  }, [cart, products]);
 
   const subtotal = useMemo(
     () =>
@@ -37,11 +28,10 @@ export default function Cart({
     [detailedItems],
   );
 
-  const { getCart } = useCartStore();
-
   useEffect(() => {
-    getCart();
-  }, []);
+    void getProducts();
+    void getCart();
+  }, [getProducts, getCart]);
 
   const shipping = detailedItems.length > 0 ? 490 : 0;
   const discount = subtotal >= 25000 ? Math.round(subtotal * 0.1) : 0;
@@ -72,17 +62,18 @@ export default function Cart({
               <p className="mt-2 text-sm text-[var(--muted-foreground)]">
                 Добавьте товары из каталога, чтобы оформить заказ.
               </p>
-              <a
-                href="/#products"
+              <button
+                type="button"
+                onClick={() => navigate("/#products")}
                 className="mt-6 inline-flex rounded-xl bg-[var(--primary)] px-6 py-3 text-sm font-semibold text-[var(--primary-foreground)] transition hover:opacity-90"
               >
                 Вернуться в каталог
-              </a>
+              </button>
             </div>
           ) : (
             detailedItems.map((item) => (
               <article
-                key={`${item.productId}-${item.size}-${item.color}`}
+                key={item.itemId}
                 className="grid gap-4 rounded-xl bg-[var(--card)] p-4 shadow-sm ring-1 ring-[var(--border)] sm:grid-cols-[120px_1fr]"
               >
                 <div className="h-28 overflow-hidden rounded-xl bg-[var(--muted)] sm:h-32">
@@ -103,27 +94,11 @@ export default function Cart({
                         {item.product.name}
                       </h2>
                       <p className="mt-1 text-sm text-[var(--muted-foreground)]">
-                        Размер EU: {item.size}
-                      </p>
-                      <p className="mt-1 inline-flex items-center gap-2 text-sm text-[var(--muted-foreground)]">
-                        Цвет:
-                        <span
-                          className="h-4 w-4 rounded-full border border-[var(--border)]"
-                          style={{
-                            backgroundColor:
-                              item.color || item.product.colors[0] || "#000000",
-                          }}
-                        />
+                        Артикул: {item.productId}
                       </p>
                     </div>
                     <button
-                      onClick={() =>
-                        onRemoveItem({
-                          productId: item.productId,
-                          size: item.size,
-                          color: item.color,
-                        })
-                      }
+                      onClick={() => void removeCartItem(item.itemId)}
                       className="rounded-xl p-2 text-[var(--muted-foreground)] transition hover:bg-[var(--muted)] hover:text-[var(--destructive)]"
                       aria-label={`Удалить ${item.product.name}`}
                     >
@@ -137,13 +112,9 @@ export default function Cart({
                         className="p-2.5 text-[var(--muted-foreground)] transition hover:bg-[var(--muted)]"
                         aria-label="Уменьшить количество"
                         onClick={() =>
-                          onChangeQuantity(
-                            {
-                              productId: item.productId,
-                              size: item.size,
-                              color: item.color,
-                            },
-                            -1,
+                          void updateCartItem(
+                            item.itemId,
+                            Math.max(1, item.quantity - 1),
                           )
                         }
                       >
@@ -155,16 +126,8 @@ export default function Cart({
                       <button
                         className="p-2.5 text-[var(--muted-foreground)] transition hover:bg-[var(--muted)]"
                         aria-label="Увеличить количество"
-                        onClick={() =>
-                          onChangeQuantity(
-                            {
-                              productId: item.productId,
-                              size: item.size,
-                              color: item.color,
-                            },
-                            1,
-                          )
-                        }
+                        disabled={item.quantity >= item.product.stock}
+                        onClick={() => void updateCartItem(item.itemId, item.quantity + 1)}
                       >
                         <Plus size={16} />
                       </button>
@@ -212,12 +175,13 @@ export default function Cart({
             Оформить заказ
           </button>
 
-          <a
-            href="/#products"
+          <button
+            type="button"
+            onClick={() => navigate("/#products")}
             className="mt-3 block w-full rounded-xl border border-[var(--border)] px-5 py-3 text-center text-sm font-semibold text-[var(--card-foreground)] transition hover:bg-[var(--muted)]"
           >
             Продолжить покупки
-          </a>
+          </button>
         </aside>
       </div>
     </main>

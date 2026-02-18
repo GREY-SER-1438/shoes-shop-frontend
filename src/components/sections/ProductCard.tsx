@@ -1,16 +1,87 @@
-import { Star } from "lucide-react";
-import { useState } from "react";
-import type { Product } from "@/data/catalog";
+import { useEffect, useMemo, useState } from "react";
+import { useProductsByIdStore } from "@/store/useProductsByIdStore";
+import { useCartStore } from "@/store/useCartStore";
+import type { ProductListItem } from "@/store/useProductsStore";
 
 type ProductCardProps = {
-  product: Product;
+  product: ProductListItem;
   onAddToCart: (productId: number, color: string, size: string) => void;
 };
 
 export default function ProductCard({ product, onAddToCart }: ProductCardProps) {
-  const sizes = ["39", "40", "41", "42", "43", "44"];
-  const [selectedColor, setSelectedColor] = useState(product.colors[0] ?? "");
-  const [selectedSize, setSelectedSize] = useState("42");
+  const groupId = Number(product.groupId);
+  const hasValidGroupId = Number.isFinite(groupId);
+  const getProductById = useProductsByIdStore((state) => state.getProductById);
+  const productDetails = useProductsByIdStore(
+    (state) => state.productsById[groupId],
+  );
+  const cart = useCartStore((state) => state.cart);
+  const [selectedColor, setSelectedColor] = useState(product.color[0] ?? "");
+  const [selectedSize, setSelectedSize] = useState<number | null>(
+    product.size[0] ?? null,
+  );
+
+  useEffect(() => {
+    if (!hasValidGroupId) return;
+    void getProductById(groupId);
+  }, [getProductById, groupId, hasValidGroupId]);
+
+  const colors = useMemo(() => {
+    if (!productDetails) return product.color;
+    return Array.from(new Set(productDetails.variants.map((variant) => variant.color)));
+  }, [productDetails, product.color]);
+
+  const sizes = useMemo(() => {
+    if (!productDetails) return product.size;
+
+    return Array.from(
+      new Set(
+        productDetails.variants
+          .filter((variant) => variant.color === selectedColor && variant.stock > 0)
+          .map((variant) => variant.size),
+      ),
+    ).sort((a, b) => a - b);
+  }, [productDetails, product.size, selectedColor]);
+
+  useEffect(() => {
+    if (colors.length === 0) return;
+
+    if (!selectedColor || !colors.includes(selectedColor)) {
+      setSelectedColor(colors[0]);
+    }
+  }, [colors, selectedColor]);
+
+  useEffect(() => {
+    if (sizes.length === 0) {
+      setSelectedSize(null);
+      return;
+    }
+
+    if (selectedSize === null || !sizes.includes(selectedSize)) {
+      setSelectedSize(sizes[0]);
+    }
+  }, [sizes, selectedSize]);
+
+  const currentCartQuantity =
+    cart?.items
+      .filter((item) => item.productId === groupId)
+      .reduce((sum, item) => sum + item.quantity, 0) ?? 0;
+
+  const selectedVariantStock = useMemo(() => {
+    if (!productDetails || !selectedColor || selectedSize === null) {
+      return product.stock;
+    }
+
+    const variant = productDetails.variants.find(
+      (item) => item.color === selectedColor && item.size === selectedSize,
+    );
+    return variant?.stock ?? 0;
+  }, [productDetails, selectedColor, selectedSize, product.stock]);
+
+  const isOutOfStock = selectedVariantStock <= 0;
+  const isLimitReached = currentCartQuantity >= product.stock;
+  const isAddDisabled =
+    !selectedColor || selectedSize === null || isOutOfStock || isLimitReached;
 
   return (
     <article className="group overflow-hidden rounded-xl bg-[var(--card)] shadow-sm ring-1 ring-[var(--border)] transition hover:-translate-y-1 hover:shadow-lg">
@@ -20,35 +91,21 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
           alt={product.name}
           className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
         />
-        {product.isNew && (
-          <span className="absolute left-3 top-3 rounded-full bg-[var(--primary)] px-3 py-1 text-xs font-semibold text-[var(--primary-foreground)]">
-            Новинка
-          </span>
-        )}
-        {product.isBestSeller && (
-          <span className="absolute left-3 top-3 rounded-full bg-[var(--foreground)] px-3 py-1 text-xs font-semibold text-[var(--background)]">
-            Бестселлер
-          </span>
-        )}
       </div>
 
       <div className="space-y-4 p-5">
-        <div className="flex items-center justify-between">
+        <div>
           <span className="text-xs font-semibold uppercase tracking-wider text-[var(--muted-foreground)]">
             {product.brand}
-          </span>
-          <span className="inline-flex items-center gap-1 text-sm text-[var(--muted-foreground)]">
-            <Star size={14} className="fill-[var(--primary)] text-[var(--primary)]" />
-            {product.rating}
           </span>
         </div>
 
         <h3 className="text-lg font-semibold text-[var(--card-foreground)]">{product.name}</h3>
 
         <div className="flex gap-2">
-          {product.colors.map((color) => (
+          {colors.map((color) => (
             <button
-              key={`${product.id}-${color}`}
+              key={`${groupId}-${color}`}
               type="button"
               aria-label={`Выбрать цвет ${color}`}
               onClick={() => setSelectedColor(color)}
@@ -65,7 +122,7 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
         <div className="flex flex-wrap gap-2">
           {sizes.map((size) => (
             <button
-              key={`${product.id}-size-${size}`}
+              key={`${groupId}-size-${size}`}
               type="button"
               onClick={() => setSelectedSize(size)}
               className={`rounded-xl border px-2.5 py-1 text-xs font-semibold transition ${
@@ -74,27 +131,28 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
                   : "border-[var(--border)] bg-[var(--card)] text-[var(--muted-foreground)] hover:border-[var(--ring)]"
               }`}
             >
-              EU {size}
+              EU {String(size)}
             </button>
           ))}
         </div>
 
         <div className="flex items-center gap-2">
-          {product.oldPrice && (
-            <span className="text-sm text-[var(--muted-foreground)]/70 line-through">
-              {product.oldPrice.toLocaleString()} ₽
-            </span>
-          )}
           <span className="text-xl font-bold text-[var(--card-foreground)]">
             {product.price.toLocaleString()} ₽
           </span>
         </div>
 
         <button
-          onClick={() => onAddToCart(product.id, selectedColor, selectedSize)}
+          type="button"
+          onClick={() => {
+            if (!selectedColor || selectedSize === null) return;
+            if (!hasValidGroupId) return;
+            onAddToCart(groupId, selectedColor, String(selectedSize));
+          }}
+          disabled={isAddDisabled}
           className="inline-flex w-full items-center justify-center rounded-xl bg-[var(--primary)] px-4 py-3 text-sm font-semibold text-[var(--primary-foreground)] transition hover:opacity-90"
         >
-          В корзину
+          {isOutOfStock ? "Нет в наличии" : "В корзину"}
         </button>
       </div>
     </article>
