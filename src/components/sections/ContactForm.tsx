@@ -1,3 +1,4 @@
+import { instance } from "@/api/instance";
 import { Clock3, Mail, Phone, Send } from "lucide-react";
 import { useState } from "react";
 import type { FormEvent } from "react";
@@ -109,7 +110,9 @@ export default function ContactForm() {
                 <Mail size={18} />
               </span>
               <span>
-                <span className="block font-semibold text-[var(--card-foreground)]">Email</span>
+                <span className="block font-semibold text-[var(--card-foreground)]">
+                  Email
+                </span>
                 <span className="text-sm text-[var(--muted-foreground)]">
                   info@dreamsneakers.ru
                 </span>
@@ -136,7 +139,9 @@ export default function ContactForm() {
           onSubmit={submit}
           className="rounded-xl bg-[var(--card)] p-6 shadow-xl sm:p-8"
         >
-          <h3 className="text-2xl font-bold text-[var(--card-foreground)]">Оставьте заявку</h3>
+          <h3 className="text-2xl font-bold text-[var(--card-foreground)]">
+            Оставьте заявку
+          </h3>
           <p className="mt-1 text-sm text-[var(--muted-foreground)]">
             Мы свяжемся с вами в течение 15 минут
           </p>
@@ -149,7 +154,9 @@ export default function ContactForm() {
               onChange={(e) => setField("name", e.target.value)}
             />
             {formErrors.name && (
-              <p className="text-xs text-[var(--destructive)]">{formErrors.name}</p>
+              <p className="text-xs text-[var(--destructive)]">
+                {formErrors.name}
+              </p>
             )}
             <input
               className="w-full rounded-xl border border-[var(--input)] bg-[var(--muted)] px-4 py-3 text-sm outline-none transition focus:border-[var(--ring)]"
@@ -158,7 +165,9 @@ export default function ContactForm() {
               onChange={(e) => setField("phone", e.target.value)}
             />
             {formErrors.phone && (
-              <p className="text-xs text-[var(--destructive)]">{formErrors.phone}</p>
+              <p className="text-xs text-[var(--destructive)]">
+                {formErrors.phone}
+              </p>
             )}
             <input
               className="w-full rounded-xl border border-[var(--input)] bg-[var(--muted)] px-4 py-3 text-sm outline-none transition focus:border-[var(--ring)]"
@@ -167,7 +176,9 @@ export default function ContactForm() {
               onChange={(e) => setField("email", e.target.value)}
             />
             {formErrors.email && (
-              <p className="text-xs text-[var(--destructive)]">{formErrors.email}</p>
+              <p className="text-xs text-[var(--destructive)]">
+                {formErrors.email}
+              </p>
             )}
             <textarea
               className="min-h-32 max-h-32 w-full rounded-xl border border-[var(--input)] bg-[var(--muted)] px-4 py-3 text-sm outline-none transition focus:border-[var(--ring)]"
@@ -177,7 +188,9 @@ export default function ContactForm() {
               onChange={(e) => setField("message", e.target.value)}
             />
             {formErrors.message && (
-              <p className="text-xs text-[var(--destructive)]">{formErrors.message}</p>
+              <p className="text-xs text-[var(--destructive)]">
+                {formErrors.message}
+              </p>
             )}
           </div>
 
@@ -190,6 +203,9 @@ export default function ContactForm() {
           <button
             type="submit"
             className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--primary)] px-4 py-3 text-sm font-semibold text-[var(--primary-foreground)] transition hover:opacity-90"
+            onClick={() => {
+              instance.get("categories");
+            }}
           >
             <Send size={16} />
             Отправить

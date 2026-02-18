@@ -1,5 +1,9 @@
+import { instance } from "@/api/instance";
+import Cookies from "js-cookie";
 import type { FormEvent } from "react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { z } from "zod";
 
 const loginSchema = z.object({
@@ -26,6 +30,7 @@ export default function Login() {
   const [formData, setFormData] = useState<LoginFormData>(initialForm);
   const [errors, setErrors] = useState<LoginErrors>({});
   const [status, setStatus] = useState("");
+  const navigate = useNavigate();
 
   const setField = <K extends keyof LoginFormData>(
     key: K,
@@ -36,7 +41,7 @@ export default function Login() {
     setStatus("");
   };
 
-  const onSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     const result = loginSchema.safeParse(formData);
@@ -51,7 +56,29 @@ export default function Login() {
     }
 
     setErrors({});
-    setStatus("Форма авторизации заполнена корректно");
+
+    try {
+      setStatus("Выполняется вход...");
+      const response = await instance.post("auth/login", {
+        email: formData.email,
+        password: formData.password,
+      });
+
+      const token = response.data?.access_token;
+      if (!token || typeof token !== "string") {
+        setStatus("Не удалось получить токен");
+        toast.error("Токен не пришел в ответе");
+        return;
+      }
+
+      Cookies.set("token", token, { sameSite: "lax" });
+      setStatus("Вход выполнен успешно");
+      toast.success("Вы успешно вошли в аккаунт");
+      navigate("/");
+    } catch (error) {
+      setStatus("Ошибка входа");
+      toast.error(`${error}`);
+    }
   };
 
   return (
@@ -74,7 +101,9 @@ export default function Login() {
               className="w-full rounded-xl border border-[var(--input)] bg-[var(--muted)] px-4 py-3 text-sm outline-none transition focus:border-[var(--ring)]"
             />
             {errors.email && (
-              <p className="mt-1 text-xs text-[var(--destructive)]">{errors.email}</p>
+              <p className="mt-1 text-xs text-[var(--destructive)]">
+                {errors.email}
+              </p>
             )}
           </div>
 
@@ -87,7 +116,9 @@ export default function Login() {
               className="w-full rounded-xl border border-[var(--input)] bg-[var(--muted)] px-4 py-3 text-sm outline-none transition focus:border-[var(--ring)]"
             />
             {errors.password && (
-              <p className="mt-1 text-xs text-[var(--destructive)]">{errors.password}</p>
+              <p className="mt-1 text-xs text-[var(--destructive)]">
+                {errors.password}
+              </p>
             )}
           </div>
 
@@ -107,7 +138,10 @@ export default function Login() {
 
         <p className="mt-4 text-sm text-[var(--muted-foreground)]">
           Нет аккаунта?{" "}
-          <a className="font-semibold text-[var(--card-foreground)] underline" href="/register">
+          <a
+            className="font-semibold text-[var(--card-foreground)] underline"
+            href="/register"
+          >
             Регистрация
           </a>
         </p>

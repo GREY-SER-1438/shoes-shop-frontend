@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import Cart from "@/pages/Cart";
 import type { CartItem } from "@/data/cart";
 import { readCart, writeCart } from "@/data/cart";
@@ -6,16 +7,11 @@ import Home from "@/pages/Home";
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
 import MainLayout from "@/components/layouts/MainLayout";
+import { Toaster } from "./components/ui/sonner";
 
 export default function App() {
-  const [pathname, setPathname] = useState(() => window.location.pathname);
+  const { pathname } = useLocation();
   const [cartItems, setCartItems] = useState<CartItem[]>(() => readCart());
-
-  useEffect(() => {
-    const updatePath = () => setPathname(window.location.pathname);
-    window.addEventListener("popstate", updatePath);
-    return () => window.removeEventListener("popstate", updatePath);
-  }, []);
 
   useEffect(() => {
     writeCart(cartItems);
@@ -48,7 +44,9 @@ export default function App() {
     );
   };
 
-  const removeItem = (target: Pick<CartItem, "productId" | "size" | "color">) => {
+  const removeItem = (
+    target: Pick<CartItem, "productId" | "size" | "color">,
+  ) => {
     setCartItems((current) =>
       current.filter((item) => !isSameCartLine(item, target)),
     );
@@ -65,6 +63,7 @@ export default function App() {
         <div className="floating-orb absolute -left-24 -top-24 h-[34rem] w-[34rem] rounded-full bg-[color:var(--primary)]/20 blur-3xl" />
         <div className="floating-orb-reverse absolute -bottom-40 -right-40 h-[48rem] w-[48rem] rounded-full bg-[color:var(--ring)]/20 blur-3xl" />
       </div>
+      <Toaster position="top-center" />
       {isCartPage ? (
         <MainLayout cartCount={cartCount}>
           <Cart

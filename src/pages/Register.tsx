@@ -1,17 +1,12 @@
+import { instance } from "@/api/instance";
 import type { FormEvent } from "react";
 import { useState } from "react";
 import { z } from "zod";
+import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 const registerSchema = z
   .object({
-    name: z.string().trim().min(2, "Имя должно быть не короче 2 символов"),
-    phone: z
-      .string()
-      .trim()
-      .min(1, "Введите телефон")
-      .refine((value) => value.replace(/\D/g, "").length >= 10, {
-        message: "Введите корректный номер телефона",
-      }),
     email: z
       .string()
       .trim()
@@ -33,8 +28,6 @@ type RegisterFormData = z.infer<typeof registerSchema>;
 type RegisterErrors = Partial<Record<keyof RegisterFormData, string>>;
 
 const initialForm: RegisterFormData = {
-  name: "",
-  phone: "",
   email: "",
   password: "",
   confirmPassword: "",
@@ -54,15 +47,13 @@ export default function Register() {
     setStatus("");
   };
 
-  const onSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     const result = registerSchema.safeParse(formData);
     if (!result.success) {
       const fieldErrors = result.error.flatten().fieldErrors;
       setErrors({
-        name: fieldErrors.name?.[0],
-        phone: fieldErrors.phone?.[0],
         email: fieldErrors.email?.[0],
         password: fieldErrors.password?.[0],
         confirmPassword: fieldErrors.confirmPassword?.[0],
@@ -72,8 +63,22 @@ export default function Register() {
     }
 
     setErrors({});
-    setStatus("Форма регистрации заполнена корректно");
+    setStatus("Выполняется регистрация...");
+    try {
+      await instance.post("auth/register", {
+        email: formData.email,
+        password: formData.password,
+      });
+      setStatus("Регистрация успешна");
+      toast.success("Успешно!");
+      navigate("/auth/login");
+    } catch (error) {
+      setStatus("Ошибка регистрации");
+      toast.error(`${error}`);
+    }
   };
+
+  const navigate = useNavigate();
 
   return (
     <main className="mx-auto flex w-full max-w-7xl flex-1 items-center px-4 py-28 sm:px-6 lg:px-8">
@@ -88,32 +93,6 @@ export default function Register() {
         <form className="mt-6 space-y-4" onSubmit={onSubmit} noValidate>
           <div>
             <input
-              type="text"
-              placeholder="Имя"
-              value={formData.name}
-              onChange={(e) => setField("name", e.target.value)}
-              className="w-full rounded-xl border border-[var(--input)] bg-[var(--muted)] px-4 py-3 text-sm outline-none transition focus:border-[var(--ring)]"
-            />
-            {errors.name && (
-              <p className="mt-1 text-xs text-[var(--destructive)]">{errors.name}</p>
-            )}
-          </div>
-
-          <div>
-            <input
-              type="tel"
-              placeholder="Телефон"
-              value={formData.phone}
-              onChange={(e) => setField("phone", e.target.value)}
-              className="w-full rounded-xl border border-[var(--input)] bg-[var(--muted)] px-4 py-3 text-sm outline-none transition focus:border-[var(--ring)]"
-            />
-            {errors.phone && (
-              <p className="mt-1 text-xs text-[var(--destructive)]">{errors.phone}</p>
-            )}
-          </div>
-
-          <div>
-            <input
               type="email"
               placeholder="Email"
               value={formData.email}
@@ -121,7 +100,9 @@ export default function Register() {
               className="w-full rounded-xl border border-[var(--input)] bg-[var(--muted)] px-4 py-3 text-sm outline-none transition focus:border-[var(--ring)]"
             />
             {errors.email && (
-              <p className="mt-1 text-xs text-[var(--destructive)]">{errors.email}</p>
+              <p className="mt-1 text-xs text-[var(--destructive)]">
+                {errors.email}
+              </p>
             )}
           </div>
 
@@ -134,7 +115,9 @@ export default function Register() {
               className="w-full rounded-xl border border-[var(--input)] bg-[var(--muted)] px-4 py-3 text-sm outline-none transition focus:border-[var(--ring)]"
             />
             {errors.password && (
-              <p className="mt-1 text-xs text-[var(--destructive)]">{errors.password}</p>
+              <p className="mt-1 text-xs text-[var(--destructive)]">
+                {errors.password}
+              </p>
             )}
           </div>
 
@@ -168,8 +151,11 @@ export default function Register() {
         </form>
 
         <p className="mt-4 text-sm text-[var(--muted-foreground)]">
-          Уже есть аккаунт?{" "}
-          <a className="font-semibold text-[var(--card-foreground)] underline" href="/login">
+          Уже есть аккаунт?
+          <a
+            className="font-semibold text-[var(--card-foreground)] underline"
+            href="/auth/login"
+          >
             Войти
           </a>
         </p>
