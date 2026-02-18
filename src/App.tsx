@@ -3,6 +3,9 @@ import Cart from "@/pages/Cart";
 import type { CartItem } from "@/data/cart";
 import { readCart, writeCart } from "@/data/cart";
 import Home from "@/pages/Home";
+import Login from "@/pages/Login";
+import Register from "@/pages/Register";
+import MainLayout from "@/components/layouts/MainLayout";
 
 export default function App() {
   const [pathname, setPathname] = useState(() => window.location.pathname);
@@ -53,22 +56,35 @@ export default function App() {
 
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
   const isCartPage = pathname === "/cart";
+  const isLoginPage = pathname === "/login";
+  const isRegisterPage = pathname === "/register";
 
   return (
-    <div className="relative min-h-screen overflow-x-hidden bg-zinc-50 text-zinc-950">
+    <div className="relative min-h-screen overflow-x-hidden bg-[var(--background)] text-[var(--foreground)]">
       <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-        <div className="floating-orb absolute -left-24 -top-24 h-[34rem] w-[34rem] rounded-full bg-pink-500/20 blur-3xl" />
-        <div className="floating-orb-reverse absolute -bottom-40 -right-40 h-[48rem] w-[48rem] rounded-full bg-fuchsia-700/20 blur-3xl" />
+        <div className="floating-orb absolute -left-24 -top-24 h-[34rem] w-[34rem] rounded-full bg-[color:var(--primary)]/20 blur-3xl" />
+        <div className="floating-orb-reverse absolute -bottom-40 -right-40 h-[48rem] w-[48rem] rounded-full bg-[color:var(--ring)]/20 blur-3xl" />
       </div>
       {isCartPage ? (
-        <Cart
-          cartCount={cartCount}
-          cartItems={cartItems}
-          onChangeQuantity={changeQuantity}
-          onRemoveItem={removeItem}
-        />
+        <MainLayout cartCount={cartCount}>
+          <Cart
+            cartItems={cartItems}
+            onChangeQuantity={changeQuantity}
+            onRemoveItem={removeItem}
+          />
+        </MainLayout>
+      ) : isLoginPage ? (
+        <MainLayout>
+          <Login />
+        </MainLayout>
+      ) : isRegisterPage ? (
+        <MainLayout>
+          <Register />
+        </MainLayout>
       ) : (
-        <Home cartCount={cartCount} onAddToCart={addToCart} />
+        <MainLayout cartCount={cartCount}>
+          <Home onAddToCart={addToCart} />
+        </MainLayout>
       )}
     </div>
   );

@@ -15,15 +15,15 @@ export default function FeaturedProducts({ onAddToCart }: FeaturedProductsProps)
   );
 
   return (
-    <section id="products" className="bg-white py-20 sm:py-24">
+    <section id="products" className="bg-[var(--card)] py-20 sm:py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-10 flex flex-wrap items-end justify-between gap-4">
-          <h2 className="text-4xl font-black tracking-tight text-zinc-950 sm:text-5xl">
+          <h2 className="text-4xl font-black tracking-tight text-[var(--card-foreground)] sm:text-5xl">
             Каталог
           </h2>
           <button
             onClick={() => setShowAll((value) => !value)}
-            className="inline-flex items-center gap-2 text-sm font-semibold text-zinc-900 transition hover:text-pink-600"
+            className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--card-foreground)] transition hover:text-[var(--primary)]"
           >
             {showAll ? (
               <>

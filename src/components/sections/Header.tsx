@@ -29,18 +29,18 @@ export default function Header({ cartCount }: HeaderProps) {
   };
 
   return (
-    <header className="fixed inset-x-0 top-0 z-50 border-b border-black/5 bg-white/90 backdrop-blur-md">
+    <header className="fixed inset-x-0 top-0 z-50 border-b border-[var(--border)] bg-[var(--background)]/90 backdrop-blur-md">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
         <button
           className="flex items-center gap-3 text-left"
           onClick={() => (isHomePage ? scrollTo("top") : window.location.assign("/"))}
         >
-          <span className="inline-block rotate-45 text-3xl font-bold text-pink-500">
+          <span className="inline-block rotate-45 text-3xl font-bold text-[var(--primary)]">
             ⟁
           </span>
           <span className="flex flex-col leading-none">
             <span className="text-xl font-bold tracking-tight">DREAM</span>
-            <span className="text-[11px] uppercase tracking-[0.22em] text-zinc-500">
+            <span className="text-[11px] uppercase tracking-[0.22em] text-[var(--muted-foreground)]">
               SNEAKERS
             </span>
           </span>
@@ -55,7 +55,7 @@ export default function Header({ cartCount }: HeaderProps) {
                 event.preventDefault();
                 scrollTo(item.id);
               }}
-              className="relative text-sm font-medium text-zinc-800 transition hover:text-pink-600"
+              className="relative text-sm font-medium text-[var(--foreground)] transition hover:text-[var(--primary)]"
             >
               {item.label}
             </a>
@@ -65,17 +65,17 @@ export default function Header({ cartCount }: HeaderProps) {
         <div className="flex items-center gap-2">
           <a
             href="/cart"
-            className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-3 py-2 text-sm font-semibold text-zinc-900 transition hover:border-pink-400 hover:text-pink-600"
+            className="inline-flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-sm font-semibold text-[var(--card-foreground)] transition hover:border-[var(--primary)] hover:text-[var(--primary)]"
           >
             <ShoppingBag size={16} />
             <span className="hidden sm:inline">Корзина</span>
-            <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-black px-1.5 text-xs text-white">
+            <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[var(--foreground)] px-1.5 text-xs text-[var(--background)]">
               {cartCount}
             </span>
           </a>
 
           <button
-            className="rounded-md p-2 text-zinc-800 md:hidden"
+            className="rounded-xl p-2 text-[var(--foreground)] md:hidden"
             aria-label="Open menu"
             onClick={() => setMenuOpen((value) => !value)}
           >
@@ -85,7 +85,7 @@ export default function Header({ cartCount }: HeaderProps) {
       </div>
 
       <div
-        className={`fixed inset-y-0 right-0 z-40 w-64 transform bg-white/95 p-8 shadow-2xl backdrop-blur transition duration-300 md:hidden ${
+        className={`fixed inset-y-0 right-0 z-40 w-64 transform bg-[var(--background)]/95 p-8 shadow-2xl backdrop-blur transition duration-300 md:hidden ${
           menuOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
@@ -98,12 +98,12 @@ export default function Header({ cartCount }: HeaderProps) {
                 event.preventDefault();
                 scrollTo(item.id);
               }}
-              className="text-lg font-medium text-zinc-900"
+              className="text-lg font-medium text-[var(--foreground)]"
             >
               {item.label}
             </a>
           ))}
-          <a href="/cart" className="text-lg font-medium text-zinc-900">
+          <a href="/cart" className="text-lg font-medium text-[var(--foreground)]">
             Корзина
           </a>
         </div>

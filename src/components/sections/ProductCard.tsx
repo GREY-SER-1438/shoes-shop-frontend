@@ -13,7 +13,7 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
   const [selectedSize, setSelectedSize] = useState("42");
 
   return (
-    <article className="group overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-black/5 transition hover:-translate-y-1 hover:shadow-lg">
+    <article className="group overflow-hidden rounded-xl bg-[var(--card)] shadow-sm ring-1 ring-[var(--border)] transition hover:-translate-y-1 hover:shadow-lg">
       <div className="relative h-64 overflow-hidden">
         <img
           src={product.image}
@@ -21,12 +21,12 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
           className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
         />
         {product.isNew && (
-          <span className="absolute left-3 top-3 rounded-full bg-pink-500 px-3 py-1 text-xs font-semibold text-white">
+          <span className="absolute left-3 top-3 rounded-full bg-[var(--primary)] px-3 py-1 text-xs font-semibold text-[var(--primary-foreground)]">
             Новинка
           </span>
         )}
         {product.isBestSeller && (
-          <span className="absolute left-3 top-3 rounded-full bg-black px-3 py-1 text-xs font-semibold text-white">
+          <span className="absolute left-3 top-3 rounded-full bg-[var(--foreground)] px-3 py-1 text-xs font-semibold text-[var(--background)]">
             Бестселлер
           </span>
         )}
@@ -34,16 +34,16 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
 
       <div className="space-y-4 p-5">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500">
+          <span className="text-xs font-semibold uppercase tracking-wider text-[var(--muted-foreground)]">
             {product.brand}
           </span>
-          <span className="inline-flex items-center gap-1 text-sm text-zinc-700">
-            <Star size={14} className="fill-amber-400 text-amber-400" />
+          <span className="inline-flex items-center gap-1 text-sm text-[var(--muted-foreground)]">
+            <Star size={14} className="fill-[var(--primary)] text-[var(--primary)]" />
             {product.rating}
           </span>
         </div>
 
-        <h3 className="text-lg font-semibold text-zinc-900">{product.name}</h3>
+        <h3 className="text-lg font-semibold text-[var(--card-foreground)]">{product.name}</h3>
 
         <div className="flex gap-2">
           {product.colors.map((color) => (
@@ -54,8 +54,8 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
               onClick={() => setSelectedColor(color)}
               className={`h-5 w-5 rounded-full border transition ${
                 selectedColor === color
-                  ? "scale-110 border-black ring-2 ring-zinc-900/20"
-                  : "border-black/10"
+                  ? "scale-110 border-[var(--foreground)] ring-2 ring-[var(--ring)]/30"
+                  : "border-[var(--border)]"
               }`}
               style={{ backgroundColor: color }}
             />
@@ -68,10 +68,10 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
               key={`${product.id}-size-${size}`}
               type="button"
               onClick={() => setSelectedSize(size)}
-              className={`rounded-lg border px-2.5 py-1 text-xs font-semibold transition ${
+              className={`rounded-xl border px-2.5 py-1 text-xs font-semibold transition ${
                 selectedSize === size
-                  ? "border-black bg-black text-white"
-                  : "border-zinc-300 bg-white text-zinc-700 hover:border-zinc-400"
+                  ? "border-[var(--foreground)] bg-[var(--foreground)] text-[var(--background)]"
+                  : "border-[var(--border)] bg-[var(--card)] text-[var(--muted-foreground)] hover:border-[var(--ring)]"
               }`}
             >
               EU {size}
@@ -81,18 +81,18 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
 
         <div className="flex items-center gap-2">
           {product.oldPrice && (
-            <span className="text-sm text-zinc-400 line-through">
+            <span className="text-sm text-[var(--muted-foreground)]/70 line-through">
               {product.oldPrice.toLocaleString()} ₽
             </span>
           )}
-          <span className="text-xl font-bold text-zinc-950">
+          <span className="text-xl font-bold text-[var(--card-foreground)]">
             {product.price.toLocaleString()} ₽
           </span>
         </div>
 
         <button
           onClick={() => onAddToCart(product.id, selectedColor, selectedSize)}
-          className="inline-flex w-full items-center justify-center rounded-xl bg-black px-4 py-3 text-sm font-semibold text-white transition hover:bg-pink-600"
+          className="inline-flex w-full items-center justify-center rounded-xl bg-[var(--primary)] px-4 py-3 text-sm font-semibold text-[var(--primary-foreground)] transition hover:opacity-90"
         >
           В корзину
         </button>

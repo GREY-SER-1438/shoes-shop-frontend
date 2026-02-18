@@ -1,13 +1,10 @@
 import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 import { useMemo } from "react";
-import Footer from "@/components/sections/Footer";
-import Header from "@/components/sections/Header";
 import type { CartItem } from "@/data/cart";
 import { products } from "@/data/catalog";
 
 type CartProps = {
   cartItems: CartItem[];
-  cartCount: number;
   onChangeQuantity: (
     item: Pick<CartItem, "productId" | "size" | "color">,
     delta: number,
@@ -17,7 +14,6 @@ type CartProps = {
 
 export default function Cart({
   cartItems,
-  cartCount,
   onChangeQuantity,
   onRemoveItem,
 }: CartProps) {
@@ -45,18 +41,16 @@ export default function Cart({
   const total = subtotal - discount + shipping;
 
   return (
-    <span className="flex flex-col justify-between h-full">
-      <Header cartCount={cartCount} />
-      <main className="mx-auto w-full max-w-7xl px-4 pb-24 pt-28 sm:px-6 lg:px-8">
+    <main className="mx-auto w-full max-w-7xl px-4 pb-24 pt-28 sm:px-6 lg:px-8">
         <div className="mb-10">
-          <p className="inline-flex items-center gap-2 rounded-full bg-white/80 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-zinc-600 ring-1 ring-black/5">
+          <p className="inline-flex items-center gap-2 rounded-full bg-[var(--card)]/80 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--muted-foreground)] ring-1 ring-[var(--border)]">
             <ShoppingBag size={14} />
             Корзина
           </p>
-          <h1 className="mt-4 text-4xl font-black tracking-tight text-zinc-950 sm:text-5xl">
+          <h1 className="mt-4 text-4xl font-black tracking-tight text-[var(--foreground)] sm:text-5xl">
             Ваш заказ
           </h1>
-          <p className="mt-3 max-w-2xl text-zinc-600">
+          <p className="mt-3 max-w-2xl text-[var(--muted-foreground)]">
             Проверьте размер, количество и итоговую сумму перед оформлением.
           </p>
         </div>
@@ -64,16 +58,16 @@ export default function Cart({
         <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
           <section className="space-y-4">
             {detailedItems.length === 0 ? (
-              <div className="rounded-2xl bg-white p-10 text-center shadow-sm ring-1 ring-black/5">
-                <p className="text-lg font-semibold text-zinc-900">
+              <div className="rounded-xl bg-[var(--card)] p-10 text-center shadow-sm ring-1 ring-[var(--border)]">
+                <p className="text-lg font-semibold text-[var(--card-foreground)]">
                   Корзина пока пуста
                 </p>
-                <p className="mt-2 text-sm text-zinc-600">
+                <p className="mt-2 text-sm text-[var(--muted-foreground)]">
                   Добавьте товары из каталога, чтобы оформить заказ.
                 </p>
                 <a
                   href="/#products"
-                  className="mt-6 inline-flex rounded-xl bg-black px-6 py-3 text-sm font-semibold text-white transition hover:bg-pink-600"
+                  className="mt-6 inline-flex rounded-xl bg-[var(--primary)] px-6 py-3 text-sm font-semibold text-[var(--primary-foreground)] transition hover:opacity-90"
                 >
                   Вернуться в каталог
                 </a>
@@ -82,9 +76,9 @@ export default function Cart({
               detailedItems.map((item) => (
                 <article
                   key={`${item.productId}-${item.size}-${item.color}`}
-                  className="grid gap-4 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-black/5 sm:grid-cols-[120px_1fr]"
+                  className="grid gap-4 rounded-xl bg-[var(--card)] p-4 shadow-sm ring-1 ring-[var(--border)] sm:grid-cols-[120px_1fr]"
                 >
-                  <div className="h-28 overflow-hidden rounded-xl bg-zinc-100 sm:h-32">
+                  <div className="h-28 overflow-hidden rounded-xl bg-[var(--muted)] sm:h-32">
                     <img
                       src={item.product.image}
                       alt={item.product.name}
@@ -95,19 +89,19 @@ export default function Cart({
                   <div className="flex flex-col gap-3">
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-[var(--muted-foreground)]">
                           {item.product.brand}
                         </p>
-                        <h2 className="text-lg font-semibold text-zinc-950">
+                        <h2 className="text-lg font-semibold text-[var(--card-foreground)]">
                           {item.product.name}
                         </h2>
-                        <p className="mt-1 text-sm text-zinc-600">
+                        <p className="mt-1 text-sm text-[var(--muted-foreground)]">
                           Размер EU: {item.size}
                         </p>
-                        <p className="mt-1 inline-flex items-center gap-2 text-sm text-zinc-600">
+                        <p className="mt-1 inline-flex items-center gap-2 text-sm text-[var(--muted-foreground)]">
                           Цвет:
                           <span
-                            className="h-4 w-4 rounded-full border border-black/10"
+                            className="h-4 w-4 rounded-full border border-[var(--border)]"
                             style={{
                               backgroundColor:
                                 item.color ||
@@ -125,7 +119,7 @@ export default function Cart({
                             color: item.color,
                           })
                         }
-                        className="rounded-lg p-2 text-zinc-500 transition hover:bg-zinc-100 hover:text-red-500"
+                        className="rounded-xl p-2 text-[var(--muted-foreground)] transition hover:bg-[var(--muted)] hover:text-[var(--destructive)]"
                         aria-label={`Удалить ${item.product.name}`}
                       >
                         <Trash2 size={17} />
@@ -133,9 +127,9 @@ export default function Cart({
                     </div>
 
                     <div className="flex flex-wrap items-center justify-between gap-3">
-                      <div className="inline-flex items-center rounded-xl border border-zinc-200 bg-white">
+                      <div className="inline-flex items-center rounded-xl border border-[var(--border)] bg-[var(--card)]">
                         <button
-                          className="p-2.5 text-zinc-700 transition hover:bg-zinc-100"
+                          className="p-2.5 text-[var(--muted-foreground)] transition hover:bg-[var(--muted)]"
                           aria-label="Уменьшить количество"
                           onClick={() =>
                             onChangeQuantity(
@@ -150,11 +144,11 @@ export default function Cart({
                         >
                           <Minus size={16} />
                         </button>
-                        <span className="min-w-10 text-center text-sm font-semibold text-zinc-900">
+                        <span className="min-w-10 text-center text-sm font-semibold text-[var(--card-foreground)]">
                           {item.quantity}
                         </span>
                         <button
-                          className="p-2.5 text-zinc-700 transition hover:bg-zinc-100"
+                          className="p-2.5 text-[var(--muted-foreground)] transition hover:bg-[var(--muted)]"
                           aria-label="Увеличить количество"
                           onClick={() =>
                             onChangeQuantity(
@@ -171,7 +165,7 @@ export default function Cart({
                         </button>
                       </div>
 
-                      <p className="text-xl font-bold text-zinc-950">
+                      <p className="text-xl font-bold text-[var(--card-foreground)]">
                         {(item.product.price * item.quantity).toLocaleString()}{" "}
                         ₽
                       </p>
@@ -182,16 +176,16 @@ export default function Cart({
             )}
           </section>
 
-          <aside className="h-fit rounded-2xl bg-white p-6 shadow-sm ring-1 ring-black/5 lg:sticky lg:top-24">
-            <h2 className="text-xl font-bold text-zinc-950">Итого</h2>
-            <div className="mt-6 space-y-3 text-sm text-zinc-700">
+          <aside className="h-fit rounded-xl bg-[var(--card)] p-6 shadow-sm ring-1 ring-[var(--border)] lg:sticky lg:top-24">
+            <h2 className="text-xl font-bold text-[var(--card-foreground)]">Итого</h2>
+            <div className="mt-6 space-y-3 text-sm text-[var(--muted-foreground)]">
               <div className="flex items-center justify-between">
                 <span>Товары</span>
                 <span>{subtotal.toLocaleString()} ₽</span>
               </div>
               <div className="flex items-center justify-between">
                 <span>Скидка</span>
-                <span className="text-emerald-600">
+                <span className="text-[var(--primary)]">
                   -{discount.toLocaleString()} ₽
                 </span>
               </div>
@@ -201,27 +195,25 @@ export default function Cart({
               </div>
             </div>
 
-            <div className="my-5 h-px bg-zinc-200" />
+            <div className="my-5 h-px bg-[var(--border)]" />
 
-            <div className="flex items-center justify-between text-lg font-bold text-zinc-950">
+            <div className="flex items-center justify-between text-lg font-bold text-[var(--card-foreground)]">
               <span>К оплате</span>
               <span>{total.toLocaleString()} ₽</span>
             </div>
 
-            <button className="mt-6 w-full rounded-xl bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-pink-600">
+            <button className="mt-6 w-full rounded-xl bg-[var(--primary)] px-5 py-3 text-sm font-semibold text-[var(--primary-foreground)] transition hover:opacity-90">
               Оформить заказ
             </button>
 
             <a
               href="/#products"
-              className="mt-3 block w-full rounded-xl border border-zinc-200 px-5 py-3 text-center text-sm font-semibold text-zinc-900 transition hover:bg-zinc-50"
+              className="mt-3 block w-full rounded-xl border border-[var(--border)] px-5 py-3 text-center text-sm font-semibold text-[var(--card-foreground)] transition hover:bg-[var(--muted)]"
             >
               Продолжить покупки
             </a>
           </aside>
         </div>
-      </main>
-      <Footer />
-    </span>
+    </main>
   );
 }
