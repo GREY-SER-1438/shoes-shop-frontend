@@ -71,7 +71,7 @@ export default function Register() {
       });
       setStatus("Регистрация успешна");
       toast.success("Успешно!");
-      navigate("/auth/login");
+      navigate("/login");
     } catch (error) {
       setStatus("Ошибка регистрации");
       toast.error(`${error}`);
@@ -154,7 +154,7 @@ export default function Register() {
           Уже есть аккаунт?
           <a
             className="font-semibold text-[var(--card-foreground)] underline"
-            href="/auth/login"
+            href="/login"
           >
             Войти
           </a>

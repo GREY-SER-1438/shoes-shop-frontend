@@ -1,4 +1,6 @@
+import { useMeStore } from "@/store/useMeStore";
 import { Menu, ShoppingBag, X } from "lucide-react";
+import Cookies from "js-cookie";
 import { useState } from "react";
 
 const navItems = [
@@ -15,6 +17,10 @@ type HeaderProps = {
 export default function Header({ cartCount }: HeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const isHomePage = window.location.pathname === "/";
+  const isLoginPage = window.location.pathname === "/login";
+  const hasAuthCookie = Boolean(
+    Cookies.get("token") || Cookies.get("access_token"),
+  );
 
   const scrollTo = (id: string) => {
     if (!isHomePage) {
@@ -28,12 +34,22 @@ export default function Header({ cartCount }: HeaderProps) {
     setMenuOpen(false);
   };
 
+  const handleLogout = () => {
+    Cookies.remove("token");
+    Cookies.remove("access_token");
+    Cookies.remove("refresh_token");
+    window.location.reload();
+  };
+
+  const { me } = useMeStore();
   return (
     <header className="fixed inset-x-0 top-0 z-50 border-b border-[var(--border)] bg-[var(--background)]/90 backdrop-blur-md">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
         <button
           className="flex items-center gap-3 text-left"
-          onClick={() => (isHomePage ? scrollTo("top") : window.location.assign("/"))}
+          onClick={() =>
+            isHomePage ? scrollTo("top") : window.location.assign("/")
+          }
         >
           <span className="inline-block rotate-45 text-3xl font-bold text-[var(--primary)]">
             ⟁
@@ -63,8 +79,13 @@ export default function Header({ cartCount }: HeaderProps) {
         </nav>
 
         <div className="flex items-center gap-2">
+          {me?.email && (
+            <span className="hidden max-w-[220px] truncate text-sm text-[var(--muted-foreground)] md:inline">
+              {me.email}
+            </span>
+          )}
           <a
-            href="/cart"
+            href={hasAuthCookie ? "/cart" : "/login"}
             className="inline-flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-sm font-semibold text-[var(--card-foreground)] transition hover:border-[var(--primary)] hover:text-[var(--primary)]"
           >
             <ShoppingBag size={16} />
@@ -73,6 +94,23 @@ export default function Header({ cartCount }: HeaderProps) {
               {cartCount}
             </span>
           </a>
+          {!hasAuthCookie && !isLoginPage && (
+            <a
+              href="/login"
+              className="rounded-xl border border-[var(--border)] px-3 py-2 text-sm font-semibold text-[var(--foreground)] transition hover:border-[var(--primary)] hover:text-[var(--primary)]"
+            >
+              Войти
+            </a>
+          )}
+          {hasAuthCookie && (
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="rounded-xl border border-[var(--border)] px-3 py-2 text-sm font-semibold text-[var(--foreground)] transition hover:border-[var(--primary)] hover:text-[var(--primary)]"
+            >
+              Выйти
+            </button>
+          )}
 
           <button
             className="rounded-xl p-2 text-[var(--foreground)] md:hidden"
@@ -103,9 +141,34 @@ export default function Header({ cartCount }: HeaderProps) {
               {item.label}
             </a>
           ))}
-          <a href="/cart" className="text-lg font-medium text-[var(--foreground)]">
+          <a
+            href={hasAuthCookie ? "/cart" : "/login"}
+            className="text-lg font-medium text-[var(--foreground)]"
+          >
+            {me?.email && (
+              <span className="mb-1 block text-sm text-[var(--muted-foreground)]">
+                {me.email}
+              </span>
+            )}
             Корзина
           </a>
+          {!hasAuthCookie && !isLoginPage && (
+            <a
+              href="/login"
+              className="text-lg font-medium text-[var(--foreground)]"
+            >
+              Войти
+            </a>
+          )}
+          {hasAuthCookie && (
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="text-left text-lg font-medium text-[var(--foreground)]"
+            >
+              Выйти
+            </button>
+          )}
         </div>
       </div>
     </header>

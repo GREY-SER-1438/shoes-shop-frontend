@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import Cart from "@/pages/Cart";
 import type { CartItem } from "@/data/cart";
 import { readCart, writeCart } from "@/data/cart";
@@ -8,9 +8,11 @@ import Login from "@/pages/Login";
 import Register from "@/pages/Register";
 import MainLayout from "@/components/layouts/MainLayout";
 import { Toaster } from "./components/ui/sonner";
+import Cookies from "js-cookie";
 
 export default function App() {
   const { pathname } = useLocation();
+  const navigate = useNavigate();
   const [cartItems, setCartItems] = useState<CartItem[]>(() => readCart());
 
   useEffect(() => {
@@ -26,9 +28,26 @@ export default function App() {
     item.color === target.color;
 
   const addToCart = (productId: number, color: string, size = "42") => {
-    void productId;
-    void color;
-    void size;
+    if (!isAuthenticated) {
+      navigate("/login");
+      return;
+    }
+
+    setCartItems((current) => {
+      const existingItem = current.find((item) =>
+        isSameCartLine(item, { productId, color, size }),
+      );
+
+      if (!existingItem) {
+        return [...current, { productId, color, size, quantity: 1 }];
+      }
+
+      return current.map((item) =>
+        isSameCartLine(item, { productId, color, size })
+          ? { ...item, quantity: item.quantity + 1 }
+          : item,
+      );
+    });
   };
 
   const changeQuantity = (
@@ -56,6 +75,26 @@ export default function App() {
   const isCartPage = pathname === "/cart";
   const isLoginPage = pathname === "/login";
   const isRegisterPage = pathname === "/register";
+  const isAuthenticated = Boolean(
+    Cookies.get("token") || Cookies.get("access_token"),
+  );
+  const redirectToHome = isAuthenticated && (isLoginPage || isRegisterPage);
+  const redirectToLogin = !isAuthenticated && isCartPage;
+
+  useEffect(() => {
+    if (redirectToHome) {
+      navigate("/", { replace: true });
+      return;
+    }
+
+    if (redirectToLogin) {
+      navigate("/login", { replace: true });
+    }
+  }, [navigate, redirectToHome, redirectToLogin]);
+
+  if (redirectToHome || redirectToLogin) {
+    return null;
+  }
 
   return (
     <div className="relative min-h-screen overflow-x-hidden bg-[var(--background)] text-[var(--foreground)]">
