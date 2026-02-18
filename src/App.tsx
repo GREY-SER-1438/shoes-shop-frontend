@@ -27,24 +27,9 @@ export default function App() {
     item.color === target.color;
 
   const addToCart = (productId: number, color: string, size = "42") => {
-    setCartItems((current) => {
-      const existing = current.find(
-        (item) =>
-          isSameCartLine(item, {
-            productId,
-            size,
-            color,
-          }),
-      );
-      if (!existing) {
-        return [...current, { productId, size, color, quantity: 1 }];
-      }
-      return current.map((item) =>
-        isSameCartLine(item, { productId, size, color })
-          ? { ...item, quantity: item.quantity + 1 }
-          : item,
-      );
-    });
+    void productId;
+    void color;
+    void size;
   };
 
   const changeQuantity = (
