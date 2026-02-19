@@ -13,10 +13,15 @@ export interface Cart {
 export interface CartApiItem {
   itemId: number;
   productId: number;
+  groupId?: number;
   name?: string;
+  brand?: string;
   price?: number;
   quantity: number;
   total?: number;
+  color?: string;
+  size?: number;
+  image?: string;
 }
 
 export interface CartStore {
@@ -24,8 +29,8 @@ export interface CartStore {
   mutating: boolean;
   getCart: (force?: boolean) => Promise<void>;
   addCartItem: (productId: number, quantity?: number) => Promise<void>;
-  updateCartItem: (itemId: number, quantity: number) => Promise<void>;
-  removeCartItem: (itemId: number) => Promise<void>;
+  updateCartItem: (productId: number, quantity: number) => Promise<void>;
+  removeCartItem: (productId: number) => Promise<void>;
   createOrder: () => Promise<void>;
   cart: Cart | null;
   error: string | null | undefined;
@@ -75,12 +80,13 @@ export const useCartStore = create<CartStore>((set, get) => ({
     }
   },
 
-  updateCartItem: async (itemId, quantity) => {
+  updateCartItem: async (productId, quantity) => {
     const safeQuantity = Math.max(1, quantity);
     set({ mutating: true, error: null });
 
     try {
-      await instance.patch(`/cart/item/${itemId}`, {
+      await instance.patch("/cart/quantity", {
+        productId,
         quantity: safeQuantity,
       });
       await get().getCart(true);
@@ -95,11 +101,11 @@ export const useCartStore = create<CartStore>((set, get) => ({
     }
   },
 
-  removeCartItem: async (itemId) => {
+  removeCartItem: async (productId) => {
     set({ mutating: true, error: null });
 
     try {
-      await instance.delete(`/cart/item/${itemId}`);
+      await instance.delete(`/cart/item/${productId}`);
       await get().getCart(true);
       set({ mutating: false });
     } catch (e) {

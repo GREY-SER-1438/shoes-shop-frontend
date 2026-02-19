@@ -5,7 +5,7 @@ import Hero from "@/components/sections/Hero";
 import Testimonials from "@/components/sections/Testimonials";
 
 type HomeProps = {
-  onAddToCart: (productId: number, color: string, size: string) => void;
+  onAddToCart: (productId: number, stock: number) => void;
 };
 
 export default function Home({ onAddToCart }: HomeProps) {

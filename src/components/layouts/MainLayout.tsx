@@ -14,14 +14,16 @@ export default function MainLayout({
   children,
   cartCount = 0,
 }: MainLayoutProps) {
-  const { getMe } = useMeStore();
+  const { getMe, me, loading: meLoading } = useMeStore();
   const { getCart } = useCartStore();
   useEffect(() => {
     if (Cookies.get("token") || Cookies.get("access_token")) {
-      getMe();
-      getCart();
+      if (!me && !meLoading) {
+        void getMe();
+      }
+      void getCart();
     }
-  }, []);
+  }, [getCart, getMe, me, meLoading]);
   return (
     <div className="flex min-h-screen flex-col">
       <Header cartCount={cartCount} />

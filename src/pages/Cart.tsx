@@ -2,39 +2,31 @@ import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 import { useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCartStore } from "@/store/useCartStore";
-import { useProductsStore } from "@/store/useProductsStore";
 
 export default function Cart() {
   const navigate = useNavigate();
-  const { products, getProducts } = useProductsStore();
-  const { cart, getCart, updateCartItem, removeCartItem, createOrder, mutating } =
-    useCartStore();
+  const {
+    cart,
+    getCart,
+    updateCartItem,
+    removeCartItem,
+    createOrder,
+    mutating,
+  } = useCartStore();
 
-  const detailedItems = useMemo(() => {
-    return (cart?.items ?? [])
-      .map((item) => {
-        const product = products.find((entry) => entry.groupId === item.productId);
-        if (!product) return null;
-        return { ...item, product };
-      })
-      .filter((item): item is NonNullable<typeof item> => item !== null);
-  }, [cart, products]);
+  const items = useMemo(() => cart?.items ?? [], [cart]);
 
   const subtotal = useMemo(
     () =>
-      detailedItems.reduce(
-        (sum, item) => sum + item.product.price * item.quantity,
-        0,
-      ),
-    [detailedItems],
+      items.reduce((sum, item) => sum + (item.price ?? 0) * item.quantity, 0),
+    [items],
   );
 
   useEffect(() => {
-    void getProducts();
     void getCart();
-  }, [getProducts, getCart]);
+  }, [getCart]);
 
-  const shipping = detailedItems.length > 0 ? 490 : 0;
+  const shipping = items.length > 0 ? 490 : 0;
   const discount = subtotal >= 25000 ? Math.round(subtotal * 0.1) : 0;
   const total = subtotal - discount + shipping;
 
@@ -55,7 +47,7 @@ export default function Cart() {
 
       <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
         <section className="space-y-4">
-          {detailedItems.length === 0 ? (
+          {items.length === 0 ? (
             <div className="rounded-xl bg-[var(--card)] p-10 text-center shadow-sm ring-1 ring-[var(--border)]">
               <p className="text-lg font-semibold text-[var(--card-foreground)]">
                 Корзина пока пуста
@@ -72,15 +64,15 @@ export default function Cart() {
               </button>
             </div>
           ) : (
-            detailedItems.map((item) => (
+            items.map((item) => (
               <article
                 key={item.itemId}
                 className="grid gap-4 rounded-xl bg-[var(--card)] p-4 shadow-sm ring-1 ring-[var(--border)] sm:grid-cols-[120px_1fr]"
               >
                 <div className="h-28 overflow-hidden rounded-xl bg-[var(--muted)] sm:h-32">
                   <img
-                    src={item.product.image}
-                    alt={item.product.name}
+                    src={item.image}
+                    alt={item.name ?? "Товар"}
                     className="h-full w-full object-cover"
                   />
                 </div>
@@ -89,20 +81,35 @@ export default function Cart() {
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <p className="text-xs font-semibold uppercase tracking-wide text-[var(--muted-foreground)]">
-                        {item.product.brand}
+                        {item.brand ?? "-"}
                       </p>
                       <h2 className="text-lg font-semibold text-[var(--card-foreground)]">
-                        {item.product.name}
+                        {item.name ?? "Без названия"}
                       </h2>
-                      <p className="mt-1 text-sm text-[var(--muted-foreground)]">
-                        Артикул: {item.productId}
-                      </p>
+                      <div className="mt-1 flex items-center gap-2 text-sm text-[var(--muted-foreground)]">
+                        <span>Артикул: {item.productId}</span>
+                        <span>|</span>
+                        <span className="inline-flex items-center gap-1.5">
+                          Цвет:
+                          <span
+                            className="inline-block h-3.5 w-3.5 rounded-full border border-[var(--border)]"
+                            style={{
+                              backgroundColor: item.color ?? "transparent",
+                            }}
+                            title={item.color ?? "unknown"}
+                            aria-label={`Цвет ${item.color ?? "не указан"}`}
+                          />
+                          {!item.color && <span>-</span>}
+                        </span>
+                        <span>|</span>
+                        <span>EU {item.size ?? "-"}</span>
+                      </div>
                     </div>
                     <button
-                      onClick={() => void removeCartItem(item.itemId)}
+                      onClick={() => void removeCartItem(item.productId)}
                       disabled={mutating}
                       className="rounded-xl p-2 text-[var(--muted-foreground)] transition hover:bg-[var(--muted)] hover:text-[var(--destructive)]"
-                      aria-label={`Удалить ${item.product.name}`}
+                      aria-label={`Удалить ${item.name ?? "товар"}`}
                     >
                       <Trash2 size={17} />
                     </button>
@@ -116,7 +123,7 @@ export default function Cart() {
                         disabled={mutating}
                         onClick={() =>
                           void updateCartItem(
-                            item.itemId,
+                            item.productId,
                             Math.max(1, item.quantity - 1),
                           )
                         }
@@ -129,15 +136,21 @@ export default function Cart() {
                       <button
                         className="p-2.5 text-[var(--muted-foreground)] transition hover:bg-[var(--muted)]"
                         aria-label="Увеличить количество"
-                        disabled={mutating || item.quantity >= item.product.stock}
-                        onClick={() => void updateCartItem(item.itemId, item.quantity + 1)}
+                        disabled={mutating}
+                        onClick={() =>
+                          void updateCartItem(item.productId, item.quantity + 1)
+                        }
                       >
                         <Plus size={16} />
                       </button>
                     </div>
 
                     <p className="text-xl font-bold text-[var(--card-foreground)]">
-                      {(item.product.price * item.quantity).toLocaleString()} ₽
+                      {(
+                        (item.total ?? (item.price ?? 0) * item.quantity) ||
+                        0
+                      ).toLocaleString()}{" "}
+                      ₽
                     </p>
                   </div>
                 </div>
@@ -176,11 +189,11 @@ export default function Cart() {
 
           <button
             type="button"
-            disabled={mutating || detailedItems.length === 0}
+            disabled={mutating || items.length === 0}
             onClick={() => void createOrder()}
             className="mt-6 w-full rounded-xl bg-[var(--primary)] px-5 py-3 text-sm font-semibold text-[var(--primary-foreground)] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {mutating ? "Оформляем..." : "Оформить заказ"}
+            {mutating ? "..." : "Оформить заказ"}
           </button>
 
           <button

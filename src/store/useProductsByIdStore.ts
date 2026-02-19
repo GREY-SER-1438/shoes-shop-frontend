@@ -11,6 +11,7 @@ export interface ProductsById {
   price: number;
   category: string;
   variants: {
+    variantId: number;
     id: number;
     color: string;
     size: number;

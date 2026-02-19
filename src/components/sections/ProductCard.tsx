@@ -4,7 +4,7 @@ import type { ProductListItem } from "@/store/useProductsStore";
 
 type ProductCardProps = {
   product: ProductListItem;
-  onAddToCart: (productId: number, color: string, size: string) => void;
+  onAddToCart: (productId: number, stock: number) => void;
 };
 
 export default function ProductCard({ product, onAddToCart }: ProductCardProps) {
@@ -12,12 +12,20 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
   const hasValidGroupId = Number.isFinite(groupId);
   const cart = useCartStore((state) => state.cart);
   const [selectedColor, setSelectedColor] = useState(product.color[0] ?? "");
-  const [selectedSize, setSelectedSize] = useState<number | null>(
-    product.size[0] ?? null,
-  );
+  const [selectedSize, setSelectedSize] = useState<number | null>(product.size[0] ?? null);
 
-  const colors = product.color;
-  const sizes = product.size;
+  const colors =
+    product.color.length > 0
+      ? product.color
+      : Array.from(new Set(product.variants.map((variant) => variant.color)));
+
+  const sizes = product.variants
+    .filter((variant) => variant.color === selectedColor)
+    .map((variant) => variant.size);
+
+  const selectedVariant = product.variants.find(
+    (variant) => variant.color === selectedColor && variant.size === selectedSize,
+  );
 
   useEffect(() => {
     if (colors.length === 0) return;
@@ -36,17 +44,17 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
     if (selectedSize === null || !sizes.includes(selectedSize)) {
       setSelectedSize(sizes[0]);
     }
-  }, [sizes, selectedSize]);
+  }, [selectedColor, sizes, selectedSize]);
 
   const currentCartQuantity =
     cart?.items
-      .filter((item) => item.productId === groupId)
+      .filter((item) => item.productId === selectedVariant?.variantId)
       .reduce((sum, item) => sum + item.quantity, 0) ?? 0;
 
-  const selectedVariantStock = product.stock;
+  const selectedVariantStock = selectedVariant?.stock ?? 0;
 
   const isOutOfStock = selectedVariantStock <= 0;
-  const isLimitReached = currentCartQuantity >= product.stock;
+  const isLimitReached = currentCartQuantity >= selectedVariantStock;
   const isAddDisabled =
     !selectedColor || selectedSize === null || isOutOfStock || isLimitReached;
 
@@ -112,9 +120,9 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
         <button
           type="button"
           onClick={() => {
-            if (!selectedColor || selectedSize === null) return;
+            if (!selectedVariant) return;
             if (!hasValidGroupId) return;
-            onAddToCart(groupId, selectedColor, String(selectedSize));
+            onAddToCart(selectedVariant.variantId, selectedVariant.stock);
           }}
           disabled={isAddDisabled}
           className="inline-flex w-full items-center justify-center rounded-xl bg-[var(--primary)] px-4 py-3 text-sm font-semibold text-[var(--primary-foreground)] transition hover:opacity-90"

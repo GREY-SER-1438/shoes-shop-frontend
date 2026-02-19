@@ -89,9 +89,20 @@ export default function Orders() {
                       <p className="text-sm font-semibold text-[var(--card-foreground)]">
                         {item.product.name}
                       </p>
-                      <p className="text-xs text-[var(--muted-foreground)]">
-                        Цвет: {item.product.color} | Размер: {item.product.size}
-                      </p>
+                      <div className="flex items-center gap-2 text-xs text-[var(--muted-foreground)]">
+                        <span className="inline-flex items-center gap-1.5">
+                          Цвет:
+                          <span
+                            className="inline-block h-3.5 w-3.5 rounded-full border border-[var(--border)]"
+                            style={{ backgroundColor: item.product.color ?? "transparent" }}
+                            title={item.product.color ?? "unknown"}
+                            aria-label={`Цвет ${item.product.color ?? "не указан"}`}
+                          />
+                          {!item.product.color && <span>-</span>}
+                        </span>
+                        <span>|</span>
+                        <span>Размер: {item.product.size}</span>
+                      </div>
                     </div>
                     <div className="self-center text-right">
                       <p className="text-sm text-[var(--muted-foreground)]">

@@ -4,7 +4,13 @@ import { toast } from "sonner";
 import { getErrorMessage } from "@/lib/get-error-message";
 
 export interface Me {
+  id: number;
   email: string;
+  password?: string;
+  role?: {
+    id: number;
+    name: string;
+  };
 }
 
 export interface meStore {
@@ -22,15 +28,16 @@ export const useMeStore = create<meStore>((set, get) => ({
   getMe: async () => {
     if (get().loading) return;
 
-    set({ loading: true });
+    set({ loading: true, error: null });
     try {
       const response = await instance.get<Me>("/user/me");
-      set({ loading: false, me: response.data });
+      set({ loading: false, me: response.data, error: null });
     } catch (e) {
       const errorMessage = getErrorMessage(e);
       toast.error(errorMessage);
       set({
         loading: false,
+        me: null,
         error: errorMessage,
       });
     }

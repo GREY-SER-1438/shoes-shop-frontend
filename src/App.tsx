@@ -11,31 +11,28 @@ import MainLayout from "@/components/layouts/MainLayout";
 import { Toaster } from "./components/ui/sonner";
 import Cookies from "js-cookie";
 import { useCartStore } from "@/store/useCartStore";
-import { useProductsStore } from "@/store/useProductsStore";
 import { toast } from "sonner";
 import RouteGuard from "@/components/routing/RouteGuard";
+import { useMeStore } from "@/store/useMeStore";
+import ScrollToTop from "@/components/routing/ScrollToTop";
 
 export default function App() {
   const navigate = useNavigate();
   const { cart, getCart, addCartItem } = useCartStore();
-  const products = useProductsStore((state) => state.products);
+  const { me, loading: meLoading, error: meError } = useMeStore();
 
-  const addToCart = (productId: number, color: string, size = "42") => {
-    void color;
-    void size;
-
+  const addToCart = (productId: number, stock: number) => {
     if (!isAuthenticated) {
       navigate("/login");
       return;
     }
 
-    const product = products.find((item) => item.groupId === productId);
     const currentQuantity =
       cart?.items
         .filter((item) => item.productId === productId)
         .reduce((sum, item) => sum + item.quantity, 0) ?? 0;
 
-    if (product && currentQuantity >= product.stock) {
+    if (currentQuantity >= stock) {
       toast.error("Достигнут лимит остатка на складе");
       return;
     }
@@ -53,6 +50,8 @@ export default function App() {
     void getCart();
   }, [getCart, isAuthenticated]);
 
+  const isAdmin = me?.role?.name?.trim().toUpperCase() === "ADMIN";
+
   return (
     <div className="relative min-h-screen overflow-x-hidden bg-[var(--background)] text-[var(--foreground)]">
       <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
@@ -60,6 +59,7 @@ export default function App() {
         <div className="floating-orb-reverse absolute -bottom-40 -right-40 h-[48rem] w-[48rem] rounded-full bg-[color:var(--ring)]/20 blur-3xl" />
       </div>
       <Toaster position="top-center" />
+      <ScrollToTop />
       <Routes>
         <Route
           path="/"
@@ -124,11 +124,25 @@ export default function App() {
         <Route
           path="/admin/panel"
           element={
-            <RouteGuard isAllowed={isAuthenticated} redirectTo="/admin/login">
+            !isAuthenticated ? (
+              <Navigate to="/admin/login" replace />
+            ) : meLoading || (!me && !meError) ? (
+              <MainLayout>
+                <main className="mx-auto w-full max-w-7xl px-4 pb-24 pt-28 sm:px-6 lg:px-8">
+                  <p className="text-[var(--muted-foreground)]">
+                    Проверка доступа...
+                  </p>
+                </main>
+              </MainLayout>
+            ) : !me ? (
+              <Navigate to="/admin/login" replace />
+            ) : !isAdmin ? (
+              <Navigate to="/" replace />
+            ) : (
               <MainLayout>
                 <AdminPanel />
               </MainLayout>
-            </RouteGuard>
+            )
           }
         />
         <Route path="*" element={<Navigate to="/" replace />} />

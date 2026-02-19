@@ -5,6 +5,7 @@ import { getErrorMessage } from "@/lib/get-error-message";
 
 export interface ProductListItem {
   groupId: number;
+  id: number;
   name: string;
   brand: string;
   image: string;
@@ -13,6 +14,12 @@ export interface ProductListItem {
   color: string[];
   size: number[];
   stock: number;
+  variants: {
+    variantId: number;
+    color: string;
+    size: number;
+    stock: number;
+  }[];
 }
 
 type ProductsStore = {
@@ -47,6 +54,8 @@ export const useProductsStore = create<ProductsStore>((set, get) => ({
 
           return {
             groupId,
+            id:
+              typeof raw.id === "number" ? raw.id : Number(raw.id ?? groupId),
             name: String(raw.name ?? ""),
             brand: String(raw.brand ?? ""),
             image: String(raw.image ?? ""),
@@ -65,6 +74,46 @@ export const useProductsStore = create<ProductsStore>((set, get) => ({
               : [],
             stock:
               typeof raw.stock === "number" ? raw.stock : Number(raw.stock ?? 0),
+            variants: Array.isArray(raw.variants)
+              ? raw.variants
+                  .map((variant) => {
+                    const rawVariant = variant as Record<string, unknown>;
+                    const rawVariantId =
+                      rawVariant.variantId ?? rawVariant.id ?? rawVariant.productId;
+                    const variantId =
+                      typeof rawVariantId === "number"
+                        ? rawVariantId
+                        : Number(rawVariantId);
+
+                    const size =
+                      typeof rawVariant.size === "number"
+                        ? rawVariant.size
+                        : Number(rawVariant.size);
+                    const stock =
+                      typeof rawVariant.stock === "number"
+                        ? rawVariant.stock
+                        : Number(rawVariant.stock);
+
+                    if (!Number.isFinite(variantId)) return null;
+
+                    return {
+                      variantId,
+                      color: String(rawVariant.color ?? ""),
+                      size: Number.isFinite(size) ? size : 0,
+                      stock: Number.isFinite(stock) ? stock : 0,
+                    };
+                  })
+                  .filter(
+                    (
+                      variant,
+                    ): variant is {
+                      variantId: number;
+                      color: string;
+                      size: number;
+                      stock: number;
+                    } => variant !== null,
+                  )
+              : [],
           };
         })
         .filter((item): item is ProductListItem => item !== null);

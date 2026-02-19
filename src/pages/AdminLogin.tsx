@@ -6,6 +6,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { z } from "zod";
+import { useMeStore } from "@/store/useMeStore";
 
 const adminLoginSchema = z.object({
   email: z.string().trim().min(1, "Введите email").email("Некорректный email"),
@@ -24,6 +25,7 @@ export default function AdminLogin() {
   const [formData, setFormData] = useState<AdminLoginFormData>(initialForm);
   const [errors, setErrors] = useState<AdminLoginErrors>({});
   const [status, setStatus] = useState("");
+  const { getMe } = useMeStore();
 
   const setField = <K extends keyof AdminLoginFormData>(
     key: K,
@@ -64,6 +66,21 @@ export default function AdminLogin() {
       }
 
       Cookies.set("token", token, { sameSite: "lax" });
+
+      await getMe();
+      const me = useMeStore.getState().me;
+      const isAdmin = me?.role?.name?.trim().toUpperCase() === "ADMIN";
+
+      if (!isAdmin) {
+        Cookies.remove("token");
+        Cookies.remove("access_token");
+        Cookies.remove("refresh_token");
+        setStatus("Недостаточно прав");
+        toast.error("Доступ в админ-панель только для ADMIN");
+        navigate("/");
+        return;
+      }
+
       setStatus("Вход выполнен успешно");
       toast.success("Вы успешно вошли в аккаунт");
       navigate("/admin/panel");
