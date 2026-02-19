@@ -101,6 +101,15 @@ export default function Header({ cartCount }: HeaderProps) {
                 {cartCount}
               </span>
             </button>
+            {hasAuthCookie && (
+              <button
+                type="button"
+                onClick={() => navigate("/orders")}
+                className="rounded-xl border border-[var(--border)] px-3 py-2 text-sm font-semibold text-[var(--foreground)] transition hover:border-[var(--primary)] hover:text-[var(--primary)]"
+              >
+                Заказы
+              </button>
+            )}
             {!hasAuthCookie && !isLoginPage && (
               <button
                 type="button"
@@ -172,6 +181,18 @@ export default function Header({ cartCount }: HeaderProps) {
           >
             Корзина
           </button>
+          {hasAuthCookie && (
+            <button
+              type="button"
+              onClick={() => {
+                navigate("/orders");
+                setMenuOpen(false);
+              }}
+              className="rounded-xl border border-[var(--border)] bg-[var(--card)] px-4 py-3 text-left text-base font-medium text-[var(--foreground)] transition hover:border-[var(--primary)]"
+            >
+              Заказы
+            </button>
+          )}
           {!hasAuthCookie && !isLoginPage && (
             <button
               type="button"

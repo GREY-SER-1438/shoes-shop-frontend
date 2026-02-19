@@ -7,7 +7,8 @@ import { useProductsStore } from "@/store/useProductsStore";
 export default function Cart() {
   const navigate = useNavigate();
   const { products, getProducts } = useProductsStore();
-  const { cart, getCart, updateCartItem, removeCartItem } = useCartStore();
+  const { cart, getCart, updateCartItem, removeCartItem, createOrder, mutating } =
+    useCartStore();
 
   const detailedItems = useMemo(() => {
     return (cart?.items ?? [])
@@ -99,6 +100,7 @@ export default function Cart() {
                     </div>
                     <button
                       onClick={() => void removeCartItem(item.itemId)}
+                      disabled={mutating}
                       className="rounded-xl p-2 text-[var(--muted-foreground)] transition hover:bg-[var(--muted)] hover:text-[var(--destructive)]"
                       aria-label={`Удалить ${item.product.name}`}
                     >
@@ -111,6 +113,7 @@ export default function Cart() {
                       <button
                         className="p-2.5 text-[var(--muted-foreground)] transition hover:bg-[var(--muted)]"
                         aria-label="Уменьшить количество"
+                        disabled={mutating}
                         onClick={() =>
                           void updateCartItem(
                             item.itemId,
@@ -126,7 +129,7 @@ export default function Cart() {
                       <button
                         className="p-2.5 text-[var(--muted-foreground)] transition hover:bg-[var(--muted)]"
                         aria-label="Увеличить количество"
-                        disabled={item.quantity >= item.product.stock}
+                        disabled={mutating || item.quantity >= item.product.stock}
                         onClick={() => void updateCartItem(item.itemId, item.quantity + 1)}
                       >
                         <Plus size={16} />
@@ -171,8 +174,13 @@ export default function Cart() {
             <span>{total.toLocaleString()} ₽</span>
           </div>
 
-          <button className="mt-6 w-full rounded-xl bg-[var(--primary)] px-5 py-3 text-sm font-semibold text-[var(--primary-foreground)] transition hover:opacity-90">
-            Оформить заказ
+          <button
+            type="button"
+            disabled={mutating || detailedItems.length === 0}
+            onClick={() => void createOrder()}
+            className="mt-6 w-full rounded-xl bg-[var(--primary)] px-5 py-3 text-sm font-semibold text-[var(--primary-foreground)] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {mutating ? "Оформляем..." : "Оформить заказ"}
           </button>
 
           <button
@@ -181,6 +189,13 @@ export default function Cart() {
             className="mt-3 block w-full rounded-xl border border-[var(--border)] px-5 py-3 text-center text-sm font-semibold text-[var(--card-foreground)] transition hover:bg-[var(--muted)]"
           >
             Продолжить покупки
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate("/orders")}
+            className="mt-3 block w-full rounded-xl border border-[var(--border)] px-5 py-3 text-center text-sm font-semibold text-[var(--card-foreground)] transition hover:bg-[var(--muted)]"
+          >
+            Мои заказы
           </button>
         </aside>
       </div>

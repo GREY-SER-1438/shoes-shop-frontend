@@ -26,6 +26,7 @@ export interface CartStore {
   addCartItem: (productId: number, quantity?: number) => Promise<void>;
   updateCartItem: (itemId: number, quantity: number) => Promise<void>;
   removeCartItem: (itemId: number) => Promise<void>;
+  createOrder: () => Promise<void>;
   cart: Cart | null;
   error: string | null | undefined;
 }
@@ -100,6 +101,24 @@ export const useCartStore = create<CartStore>((set, get) => ({
     try {
       await instance.delete(`/cart/item/${itemId}`);
       await get().getCart(true);
+      set({ mutating: false });
+    } catch (e) {
+      const errorMessage = getErrorMessage(e);
+      toast.error(errorMessage);
+      set({
+        mutating: false,
+        error: errorMessage,
+      });
+    }
+  },
+
+  createOrder: async () => {
+    set({ mutating: true, error: null });
+
+    try {
+      await instance.post("/orders");
+      await get().getCart(true);
+      toast.success("Заказ успешно оформлен");
       set({ mutating: false });
     } catch (e) {
       const errorMessage = getErrorMessage(e);

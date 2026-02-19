@@ -47,6 +47,11 @@ type CreateVariantPayload = {
 
 type UpdateVariantPayload = Partial<CreateVariantPayload>;
 
+type CategoryItem = {
+  id: number;
+  name: string;
+};
+
 const initialCreateForm: CreateVariantPayload = {
   groupId: 0,
   name: "",
@@ -88,6 +93,23 @@ export default function AdminPanel() {
 
   const [deleteId, setDeleteId] = useState("");
   const [deleteLoading, setDeleteLoading] = useState(false);
+
+  const [categories, setCategories] = useState<CategoryItem[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(false);
+
+  const [categoryId, setCategoryId] = useState("");
+  const [categoryDetails, setCategoryDetails] = useState<CategoryItem | null>(null);
+  const [categoryDetailsLoading, setCategoryDetailsLoading] = useState(false);
+
+  const [createCategoryName, setCreateCategoryName] = useState("");
+  const [createCategoryLoading, setCreateCategoryLoading] = useState(false);
+
+  const [updateCategoryId, setUpdateCategoryId] = useState("");
+  const [updateCategoryName, setUpdateCategoryName] = useState("");
+  const [updateCategoryLoading, setUpdateCategoryLoading] = useState(false);
+
+  const [deleteCategoryId, setDeleteCategoryId] = useState("");
+  const [deleteCategoryLoading, setDeleteCategoryLoading] = useState(false);
 
   const fetchProducts = async () => {
     setProductsLoading(true);
@@ -209,6 +231,110 @@ export default function AdminPanel() {
     }
   };
 
+  const fetchCategories = async () => {
+    setCategoriesLoading(true);
+    try {
+      const response = await instance.get<CategoryItem[]>("/categories");
+      setCategories(response.data);
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    } finally {
+      setCategoriesLoading(false);
+    }
+  };
+
+  const fetchCategoryById = async (e: FormEvent) => {
+    e.preventDefault();
+    const id = Number(categoryId);
+    if (!Number.isFinite(id) || id <= 0) {
+      toast.error("Введите корректный id категории");
+      return;
+    }
+
+    setCategoryDetailsLoading(true);
+    try {
+      const response = await instance.get<CategoryItem>(`/categories/${id}`);
+      setCategoryDetails(response.data);
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+      setCategoryDetails(null);
+    } finally {
+      setCategoryDetailsLoading(false);
+    }
+  };
+
+  const createCategory = async (e: FormEvent) => {
+    e.preventDefault();
+    const name = createCategoryName.trim();
+    if (name.length < 2 || name.length > 50) {
+      toast.error("Название категории должно быть от 2 до 50 символов");
+      return;
+    }
+
+    setCreateCategoryLoading(true);
+    try {
+      await instance.post("/categories", { name });
+      toast.success("Категория создана");
+      setCreateCategoryName("");
+      await fetchCategories();
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    } finally {
+      setCreateCategoryLoading(false);
+    }
+  };
+
+  const updateCategory = async (e: FormEvent) => {
+    e.preventDefault();
+    const id = Number(updateCategoryId);
+    if (!Number.isFinite(id) || id <= 0) {
+      toast.error("Введите корректный id категории");
+      return;
+    }
+
+    const name = updateCategoryName.trim();
+    if (!name) {
+      toast.error("Нужно указать название категории");
+      return;
+    }
+    if (name.length < 2 || name.length > 50) {
+      toast.error("Название категории должно быть от 2 до 50 символов");
+      return;
+    }
+
+    setUpdateCategoryLoading(true);
+    try {
+      await instance.patch(`/categories/${id}`, { name });
+      toast.success("Категория обновлена");
+      await fetchCategories();
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    } finally {
+      setUpdateCategoryLoading(false);
+    }
+  };
+
+  const removeCategory = async (e: FormEvent) => {
+    e.preventDefault();
+    const id = Number(deleteCategoryId);
+    if (!Number.isFinite(id) || id <= 0) {
+      toast.error("Введите корректный id категории");
+      return;
+    }
+
+    setDeleteCategoryLoading(true);
+    try {
+      await instance.delete(`/categories/${id}`);
+      toast.success("Категория удалена");
+      setDeleteCategoryId("");
+      await fetchCategories();
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    } finally {
+      setDeleteCategoryLoading(false);
+    }
+  };
+
   return (
     <main className="mx-auto w-full max-w-7xl px-4 pb-16 pt-28 sm:px-6 lg:px-8">
       <h1 className="text-3xl font-black tracking-tight text-[var(--foreground)]">
@@ -314,6 +440,119 @@ export default function AdminPanel() {
               className="rounded-xl bg-[var(--destructive)] px-4 py-2 text-sm font-semibold text-[var(--destructive-foreground)]"
             >
               {deleteLoading ? "Удаление..." : "Удалить"}
+            </button>
+          </form>
+        </section>
+      </div>
+
+      <h2 className="mt-12 text-3xl font-black tracking-tight text-[var(--foreground)]">
+        Админ-панель категорий
+      </h2>
+
+      <div className="mt-8 grid gap-6 lg:grid-cols-2">
+        <section className="rounded-xl bg-[var(--card)] p-6 ring-1 ring-[var(--border)]">
+          <div className="flex items-center justify-between gap-3">
+            <h3 className="text-xl font-bold text-[var(--card-foreground)]">
+              GET /categories
+            </h3>
+            <button
+              type="button"
+              onClick={() => void fetchCategories()}
+              className="rounded-xl bg-[var(--primary)] px-4 py-2 text-sm font-semibold text-[var(--primary-foreground)]"
+            >
+              {categoriesLoading ? "Загрузка..." : "Обновить"}
+            </button>
+          </div>
+          <pre className="mt-4 max-h-80 overflow-auto rounded-lg bg-[var(--muted)] p-3 text-xs">
+            {JSON.stringify(categories, null, 2)}
+          </pre>
+        </section>
+
+        <section className="rounded-xl bg-[var(--card)] p-6 ring-1 ring-[var(--border)]">
+          <h3 className="text-xl font-bold text-[var(--card-foreground)]">
+            GET /categories/:id
+          </h3>
+          <form onSubmit={fetchCategoryById} className="mt-4 flex gap-2">
+            <input
+              value={categoryId}
+              onChange={(e) => setCategoryId(e.target.value)}
+              placeholder="id"
+              className="w-full rounded-xl border border-[var(--input)] bg-[var(--muted)] px-3 py-2 text-sm"
+            />
+            <button
+              type="submit"
+              className="rounded-xl bg-[var(--primary)] px-4 py-2 text-sm font-semibold text-[var(--primary-foreground)]"
+            >
+              {categoryDetailsLoading ? "..." : "Получить"}
+            </button>
+          </form>
+          <pre className="mt-4 max-h-80 overflow-auto rounded-lg bg-[var(--muted)] p-3 text-xs">
+            {JSON.stringify(categoryDetails, null, 2)}
+          </pre>
+        </section>
+
+        <section className="rounded-xl bg-[var(--card)] p-6 ring-1 ring-[var(--border)]">
+          <h3 className="text-xl font-bold text-[var(--card-foreground)]">
+            POST /categories
+          </h3>
+          <form onSubmit={createCategory} className="mt-4 space-y-2">
+            <input
+              className="w-full rounded-xl border border-[var(--input)] bg-[var(--muted)] px-3 py-2 text-sm"
+              placeholder="name (2–50)"
+              value={createCategoryName}
+              onChange={(e) => setCreateCategoryName(e.target.value)}
+            />
+            <button
+              type="submit"
+              className="rounded-xl bg-[var(--primary)] px-4 py-2 text-sm font-semibold text-[var(--primary-foreground)]"
+            >
+              {createCategoryLoading ? "Создание..." : "Создать"}
+            </button>
+          </form>
+        </section>
+
+        <section className="rounded-xl bg-[var(--card)] p-6 ring-1 ring-[var(--border)]">
+          <h3 className="text-xl font-bold text-[var(--card-foreground)]">
+            PATCH /categories/:id
+          </h3>
+          <form onSubmit={updateCategory} className="mt-4 space-y-2">
+            <input
+              className="w-full rounded-xl border border-[var(--input)] bg-[var(--muted)] px-3 py-2 text-sm"
+              placeholder="id категории (обяз.)"
+              value={updateCategoryId}
+              onChange={(e) => setUpdateCategoryId(e.target.value)}
+            />
+            <input
+              className="w-full rounded-xl border border-[var(--input)] bg-[var(--muted)] px-3 py-2 text-sm"
+              placeholder="name (2–50)"
+              value={updateCategoryName}
+              onChange={(e) => setUpdateCategoryName(e.target.value)}
+            />
+            <button
+              type="submit"
+              className="rounded-xl bg-[var(--primary)] px-4 py-2 text-sm font-semibold text-[var(--primary-foreground)]"
+            >
+              {updateCategoryLoading ? "Обновление..." : "Обновить"}
+            </button>
+          </form>
+        </section>
+
+        <section className="rounded-xl bg-[var(--card)] p-6 ring-1 ring-[var(--border)] lg:col-span-2">
+          <h3 className="text-xl font-bold text-[var(--card-foreground)]">
+            DELETE /categories/:id
+          </h3>
+          <form onSubmit={removeCategory} className="mt-4 flex gap-2">
+            <input
+              value={deleteCategoryId}
+              onChange={(e) => setDeleteCategoryId(e.target.value)}
+              placeholder="id категории"
+              className="w-full rounded-xl border border-[var(--input)] bg-[var(--muted)] px-3 py-2 text-sm"
+            />
+            <button
+              type="submit"
+              className="rounded-xl bg-[var(--destructive)] px-4 py-2 text-sm font-semibold text-[var(--destructive-foreground)]"
+            >
+              {deleteCategoryLoading ? "Удаление..." : "Удалить"}
             </button>
           </form>
         </section>

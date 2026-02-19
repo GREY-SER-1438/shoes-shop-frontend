@@ -1,20 +1,21 @@
 import { useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import Cart from "@/pages/Cart";
 import Home from "@/pages/Home";
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
 import AdminLogin from "@/pages/AdminLogin";
 import AdminPanel from "@/pages/AdminPanel";
+import Orders from "@/pages/Orders";
 import MainLayout from "@/components/layouts/MainLayout";
 import { Toaster } from "./components/ui/sonner";
 import Cookies from "js-cookie";
 import { useCartStore } from "@/store/useCartStore";
 import { useProductsStore } from "@/store/useProductsStore";
 import { toast } from "sonner";
+import RouteGuard from "@/components/routing/RouteGuard";
 
 export default function App() {
-  const { pathname } = useLocation();
   const navigate = useNavigate();
   const { cart, getCart, addCartItem } = useCartStore();
   const products = useProductsStore((state) => state.products);
@@ -43,36 +44,14 @@ export default function App() {
   };
 
   const cartCount = cart?.totalItems ?? 0;
-  const isCartPage = pathname === "/cart";
-  const isLoginPage = pathname === "/login";
-  const isRegisterPage = pathname === "/register";
-  const isAdminLoginPage = pathname === "/admin/login";
-  const isAdminPanelPage = pathname === "/admin/panel";
   const isAuthenticated = Boolean(
     Cookies.get("token") || Cookies.get("access_token"),
   );
-  const redirectToHome = isAuthenticated && (isLoginPage || isRegisterPage);
-  const redirectToLogin = !isAuthenticated && isCartPage;
-
-  useEffect(() => {
-    if (redirectToHome) {
-      navigate("/", { replace: true });
-      return;
-    }
-
-    if (redirectToLogin) {
-      navigate("/login", { replace: true });
-    }
-  }, [navigate, redirectToHome, redirectToLogin]);
 
   useEffect(() => {
     if (!isAuthenticated) return;
     void getCart();
   }, [getCart, isAuthenticated]);
-
-  if (redirectToHome || redirectToLogin) {
-    return null;
-  }
 
   return (
     <div className="relative min-h-screen overflow-x-hidden bg-[var(--background)] text-[var(--foreground)]">
@@ -81,31 +60,79 @@ export default function App() {
         <div className="floating-orb-reverse absolute -bottom-40 -right-40 h-[48rem] w-[48rem] rounded-full bg-[color:var(--ring)]/20 blur-3xl" />
       </div>
       <Toaster position="top-center" />
-      {isCartPage ? (
-        <MainLayout cartCount={cartCount}>
-          <Cart />
-        </MainLayout>
-      ) : isLoginPage ? (
-        <MainLayout>
-          <Login />
-        </MainLayout>
-      ) : isRegisterPage ? (
-        <MainLayout>
-          <Register />
-        </MainLayout>
-      ) : isAdminLoginPage ? (
-        <MainLayout>
-          <AdminLogin />
-        </MainLayout>
-      ) : isAdminPanelPage ? (
-        <MainLayout>
-          <AdminPanel />
-        </MainLayout>
-      ) : (
-        <MainLayout cartCount={cartCount}>
-          <Home onAddToCart={addToCart} />
-        </MainLayout>
-      )}
+      <Routes>
+        <Route
+          path="/"
+          element={
+            <MainLayout cartCount={cartCount}>
+              <Home onAddToCart={addToCart} />
+            </MainLayout>
+          }
+        />
+        <Route
+          path="/login"
+          element={
+            isAuthenticated ? (
+              <Navigate to="/" replace />
+            ) : (
+              <MainLayout>
+                <Login />
+              </MainLayout>
+            )
+          }
+        />
+        <Route
+          path="/register"
+          element={
+            isAuthenticated ? (
+              <Navigate to="/" replace />
+            ) : (
+              <MainLayout>
+                <Register />
+              </MainLayout>
+            )
+          }
+        />
+        <Route
+          path="/cart"
+          element={
+            <RouteGuard isAllowed={isAuthenticated} redirectTo="/login">
+              <MainLayout cartCount={cartCount}>
+                <Cart />
+              </MainLayout>
+            </RouteGuard>
+          }
+        />
+        <Route
+          path="/orders"
+          element={
+            <RouteGuard isAllowed={isAuthenticated} redirectTo="/login">
+              <MainLayout cartCount={cartCount}>
+                <Orders />
+              </MainLayout>
+            </RouteGuard>
+          }
+        />
+        <Route
+          path="/admin/login"
+          element={
+            <MainLayout>
+              <AdminLogin />
+            </MainLayout>
+          }
+        />
+        <Route
+          path="/admin/panel"
+          element={
+            <RouteGuard isAllowed={isAuthenticated} redirectTo="/admin/login">
+              <MainLayout>
+                <AdminPanel />
+              </MainLayout>
+            </RouteGuard>
+          }
+        />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     </div>
   );
 }
