@@ -5,11 +5,11 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 type ProductListItem = {
-  groupId: number;
+  id: number;
   name: string;
   brand: string;
   image: string;
-  price: number;
+  price: string;
   category: string;
   color: string[];
   size: number[];
@@ -45,7 +45,12 @@ type CreateVariantPayload = {
   categoryId: number;
 };
 
-type UpdateVariantPayload = Partial<CreateVariantPayload>;
+type UpdateVariantPayload = Partial<
+  Omit<CreateVariantPayload, "color" | "size"> & {
+    color: string | string[];
+    size: number | number[];
+  }
+>;
 
 type CategoryItem = {
   id: number;
@@ -183,15 +188,99 @@ export default function AdminPanel() {
 
     const payload: UpdateVariantPayload = {};
 
-    if (updateForm.groupId.trim()) payload.groupId = Number(updateForm.groupId);
+    const parseNumber = (value: string) => {
+      const parsed = Number(value);
+      return Number.isFinite(parsed) ? parsed : null;
+    };
+
+    const parseNumberArray = (value: string) => {
+      try {
+        const parsed = JSON.parse(value);
+        if (!Array.isArray(parsed)) return null;
+        const numbers = parsed.map((item) => Number(item));
+        return numbers.every((num) => Number.isFinite(num)) ? numbers : null;
+      } catch {
+        return null;
+      }
+    };
+
+    const parseStringArray = (value: string) => {
+      try {
+        const parsed = JSON.parse(value);
+        if (!Array.isArray(parsed)) return null;
+        const strings = parsed.map((item) => String(item).trim());
+        return strings.every((item) => item.length > 0) ? strings : null;
+      } catch {
+        return null;
+      }
+    };
+
+    if (updateForm.groupId.trim()) {
+      const parsed = parseNumber(updateForm.groupId);
+      if (parsed === null) {
+        toast.error("groupId должен быть числом");
+        return;
+      }
+      payload.groupId = parsed;
+    }
     if (updateForm.name.trim()) payload.name = updateForm.name.trim();
     if (updateForm.brand.trim()) payload.brand = updateForm.brand.trim();
     if (updateForm.image.trim()) payload.image = updateForm.image.trim();
-    if (updateForm.price.trim()) payload.price = Number(updateForm.price);
-    if (updateForm.color.trim()) payload.color = updateForm.color.trim();
-    if (updateForm.size.trim()) payload.size = Number(updateForm.size);
-    if (updateForm.stock.trim()) payload.stock = Number(updateForm.stock);
-    if (updateForm.categoryId.trim()) payload.categoryId = Number(updateForm.categoryId);
+    if (updateForm.price.trim()) {
+      const parsed = parseNumber(updateForm.price);
+      if (parsed === null) {
+        toast.error("price должен быть числом");
+        return;
+      }
+      payload.price = parsed;
+    }
+    if (updateForm.color.trim()) {
+      const trimmed = updateForm.color.trim();
+      if (trimmed.startsWith("[")) {
+        const parsed = parseStringArray(trimmed);
+        if (!parsed) {
+          toast.error("color должен быть строкой или JSON-массивом строк");
+          return;
+        }
+        payload.color = parsed;
+      } else {
+        payload.color = trimmed;
+      }
+    }
+    if (updateForm.size.trim()) {
+      const trimmed = updateForm.size.trim();
+      if (trimmed.startsWith("[")) {
+        const parsed = parseNumberArray(trimmed);
+        if (!parsed) {
+          toast.error("size должен быть числом или JSON-массивом чисел");
+          return;
+        }
+        payload.size = parsed;
+      } else {
+        const parsed = parseNumber(trimmed);
+        if (parsed === null) {
+          toast.error("size должен быть числом");
+          return;
+        }
+        payload.size = parsed;
+      }
+    }
+    if (updateForm.stock.trim()) {
+      const parsed = parseNumber(updateForm.stock);
+      if (parsed === null) {
+        toast.error("stock должен быть числом");
+        return;
+      }
+      payload.stock = parsed;
+    }
+    if (updateForm.categoryId.trim()) {
+      const parsed = parseNumber(updateForm.categoryId);
+      if (parsed === null) {
+        toast.error("categoryId должен быть числом");
+        return;
+      }
+      payload.categoryId = parsed;
+    }
 
     if (Object.keys(payload).length === 0) {
       toast.error("Нужно указать хотя бы одно поле для обновления");
@@ -414,8 +503,8 @@ export default function AdminPanel() {
             <input className="w-full rounded-xl border border-[var(--input)] bg-[var(--muted)] px-3 py-2 text-sm" placeholder="brand (optional)" value={updateForm.brand} onChange={(e) => setUpdateForm((prev) => ({ ...prev, brand: e.target.value }))} />
             <input className="w-full rounded-xl border border-[var(--input)] bg-[var(--muted)] px-3 py-2 text-sm" placeholder="image (optional)" value={updateForm.image} onChange={(e) => setUpdateForm((prev) => ({ ...prev, image: e.target.value }))} />
             <input className="w-full rounded-xl border border-[var(--input)] bg-[var(--muted)] px-3 py-2 text-sm" placeholder="price (optional)" value={updateForm.price} onChange={(e) => setUpdateForm((prev) => ({ ...prev, price: e.target.value }))} />
-            <input className="w-full rounded-xl border border-[var(--input)] bg-[var(--muted)] px-3 py-2 text-sm" placeholder="color (optional)" value={updateForm.color} onChange={(e) => setUpdateForm((prev) => ({ ...prev, color: e.target.value }))} />
-            <input className="w-full rounded-xl border border-[var(--input)] bg-[var(--muted)] px-3 py-2 text-sm" placeholder="size (optional)" value={updateForm.size} onChange={(e) => setUpdateForm((prev) => ({ ...prev, size: e.target.value }))} />
+            <input className="w-full rounded-xl border border-[var(--input)] bg-[var(--muted)] px-3 py-2 text-sm" placeholder="color (optional, string or JSON array)" value={updateForm.color} onChange={(e) => setUpdateForm((prev) => ({ ...prev, color: e.target.value }))} />
+            <input className="w-full rounded-xl border border-[var(--input)] bg-[var(--muted)] px-3 py-2 text-sm" placeholder="size (optional, number or JSON array)" value={updateForm.size} onChange={(e) => setUpdateForm((prev) => ({ ...prev, size: e.target.value }))} />
             <input className="w-full rounded-xl border border-[var(--input)] bg-[var(--muted)] px-3 py-2 text-sm" placeholder="stock (optional)" value={updateForm.stock} onChange={(e) => setUpdateForm((prev) => ({ ...prev, stock: e.target.value }))} />
             <input className="w-full rounded-xl border border-[var(--input)] bg-[var(--muted)] px-3 py-2 text-sm" placeholder="categoryId (optional)" value={updateForm.categoryId} onChange={(e) => setUpdateForm((prev) => ({ ...prev, categoryId: e.target.value }))} />
             <button type="submit" className="rounded-xl bg-[var(--primary)] px-4 py-2 text-sm font-semibold text-[var(--primary-foreground)]">

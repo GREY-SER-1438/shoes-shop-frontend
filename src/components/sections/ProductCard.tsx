@@ -1,5 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
-import { useProductsByIdStore } from "@/store/useProductsByIdStore";
+import { useEffect, useState } from "react";
 import { useCartStore } from "@/store/useCartStore";
 import type { ProductListItem } from "@/store/useProductsStore";
 
@@ -11,37 +10,14 @@ type ProductCardProps = {
 export default function ProductCard({ product, onAddToCart }: ProductCardProps) {
   const groupId = Number(product.groupId);
   const hasValidGroupId = Number.isFinite(groupId);
-  const getProductById = useProductsByIdStore((state) => state.getProductById);
-  const productDetails = useProductsByIdStore(
-    (state) => state.productsById[groupId],
-  );
   const cart = useCartStore((state) => state.cart);
   const [selectedColor, setSelectedColor] = useState(product.color[0] ?? "");
   const [selectedSize, setSelectedSize] = useState<number | null>(
     product.size[0] ?? null,
   );
 
-  useEffect(() => {
-    if (!hasValidGroupId) return;
-    void getProductById(groupId);
-  }, [getProductById, groupId, hasValidGroupId]);
-
-  const colors = useMemo(() => {
-    if (!productDetails) return product.color;
-    return Array.from(new Set(productDetails.variants.map((variant) => variant.color)));
-  }, [productDetails, product.color]);
-
-  const sizes = useMemo(() => {
-    if (!productDetails) return product.size;
-
-    return Array.from(
-      new Set(
-        productDetails.variants
-          .filter((variant) => variant.color === selectedColor && variant.stock > 0)
-          .map((variant) => variant.size),
-      ),
-    ).sort((a, b) => a - b);
-  }, [productDetails, product.size, selectedColor]);
+  const colors = product.color;
+  const sizes = product.size;
 
   useEffect(() => {
     if (colors.length === 0) return;
@@ -67,16 +43,7 @@ export default function ProductCard({ product, onAddToCart }: ProductCardProps) 
       .filter((item) => item.productId === groupId)
       .reduce((sum, item) => sum + item.quantity, 0) ?? 0;
 
-  const selectedVariantStock = useMemo(() => {
-    if (!productDetails || !selectedColor || selectedSize === null) {
-      return product.stock;
-    }
-
-    const variant = productDetails.variants.find(
-      (item) => item.color === selectedColor && item.size === selectedSize,
-    );
-    return variant?.stock ?? 0;
-  }, [productDetails, selectedColor, selectedSize, product.stock]);
+  const selectedVariantStock = product.stock;
 
   const isOutOfStock = selectedVariantStock <= 0;
   const isLimitReached = currentCartQuantity >= product.stock;

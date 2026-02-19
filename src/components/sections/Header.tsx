@@ -54,18 +54,18 @@ export default function Header({ cartCount }: HeaderProps) {
   return (
     <>
       <header className="fixed inset-x-0 top-0 z-50 border-b border-[var(--border)] bg-[var(--background)]/90 backdrop-blur-md">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-3 py-3 sm:px-6 sm:py-4 lg:px-8">
           <button
             type="button"
-            className="flex items-center gap-3 text-left"
+            className="flex items-center gap-2 text-left sm:gap-3"
             onClick={() => (isHomePage ? scrollTo("top") : navigate("/"))}
           >
-            <span className="inline-block rotate-45 text-3xl font-bold text-[var(--primary)]">
+            <span className="inline-block rotate-45 text-2xl font-bold text-[var(--primary)] sm:text-3xl">
               ⟁
             </span>
             <span className="flex flex-col leading-none">
-              <span className="text-xl font-bold tracking-tight">DREAM</span>
-              <span className="text-[11px] uppercase tracking-[0.22em] text-[var(--muted-foreground)]">
+              <span className="text-base font-bold tracking-tight sm:text-xl">DREAM</span>
+              <span className="text-[10px] uppercase tracking-[0.22em] text-[var(--muted-foreground)] sm:text-[11px]">
                 SNEAKERS
               </span>
             </span>
@@ -93,7 +93,7 @@ export default function Header({ cartCount }: HeaderProps) {
             <button
               type="button"
               onClick={() => navigate(hasAuthCookie ? "/cart" : "/login")}
-              className="inline-flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-sm font-semibold text-[var(--card-foreground)] transition hover:border-[var(--primary)] hover:text-[var(--primary)]"
+              className="inline-flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--card)] px-2.5 py-2 text-sm font-semibold text-[var(--card-foreground)] transition hover:border-[var(--primary)] hover:text-[var(--primary)] sm:px-3"
             >
               <ShoppingBag size={16} />
               <span className="hidden sm:inline">Корзина</span>
@@ -105,7 +105,7 @@ export default function Header({ cartCount }: HeaderProps) {
               <button
                 type="button"
                 onClick={() => navigate("/orders")}
-                className="rounded-xl border border-[var(--border)] px-3 py-2 text-sm font-semibold text-[var(--foreground)] transition hover:border-[var(--primary)] hover:text-[var(--primary)]"
+                className="hidden rounded-xl border border-[var(--border)] px-3 py-2 text-sm font-semibold text-[var(--foreground)] transition hover:border-[var(--primary)] hover:text-[var(--primary)] md:inline-flex"
               >
                 Заказы
               </button>
@@ -114,7 +114,7 @@ export default function Header({ cartCount }: HeaderProps) {
               <button
                 type="button"
                 onClick={() => navigate("/login")}
-                className="rounded-xl border border-[var(--border)] px-3 py-2 text-sm font-semibold text-[var(--foreground)] transition hover:border-[var(--primary)] hover:text-[var(--primary)]"
+                className="hidden rounded-xl border border-[var(--border)] px-3 py-2 text-sm font-semibold text-[var(--foreground)] transition hover:border-[var(--primary)] hover:text-[var(--primary)] md:inline-flex"
               >
                 Войти
               </button>
@@ -123,7 +123,7 @@ export default function Header({ cartCount }: HeaderProps) {
               <button
                 type="button"
                 onClick={handleLogout}
-                className="rounded-xl border border-[var(--border)] px-3 py-2 text-sm font-semibold text-[var(--foreground)] transition hover:border-[var(--primary)] hover:text-[var(--primary)]"
+                className="hidden rounded-xl border border-[var(--border)] px-3 py-2 text-sm font-semibold text-[var(--foreground)] transition hover:border-[var(--primary)] hover:text-[var(--primary)] md:inline-flex"
               >
                 Выйти
               </button>
